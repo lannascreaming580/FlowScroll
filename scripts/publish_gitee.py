@@ -1,39 +1,120 @@
-import os
-import sys
 import json
-import urllib.request
+import os
+import subprocess
+import sys
+import time
+import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import Path
 
-def upload_file(url, file_path, token):
-    boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
+
+def api_request(url, data=None, timeout=60):
+    req = urllib.request.Request(url, data=data)
+    if data is not None:
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def create_or_get_release(owner, repo, tag_name, token):
+    print(f"🚀 Creating Gitee release for {tag_name}...")
+
+    url = f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases"
+    body = """Windows 用户：下载对应的 .exe 文件，双击即可运行。
+macOS 用户：下载对应的 .dmg 文件，将其拖入 Applications 文件夹，并在“安全性与隐私”中赋予辅助功能权限。
+Linux 用户（Preview）：下载对应的 .AppImage 文件，赋予执行权限后双击运行。
+注：Ubuntu Wayland 下可能无法工作，目前优先支持 Windows / macOS，Linux 仅在 X11/Xorg 环境下尝试支持。"""
+
+    data = {
+        "access_token": token,
+        "tag_name": tag_name,
+        "name": tag_name,
+        "body": body,
+        "target_commitish": os.environ.get("GITHUB_SHA", "main"),
+    }
+
+    try:
+        res_data = api_request(
+            url,
+            data=urllib.parse.urlencode(data).encode("utf-8"),
+            timeout=60,
+        )
+        release_id = res_data["id"]
+        print(f"✅ Created release ID: {release_id}")
+        return release_id
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode("utf-8", errors="ignore")
+        print(f"❌ Failed to create release: {error_msg}")
+
+        print("Trying to fetch existing release ID...")
+        get_url = (
+            f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases/tags/"
+            f"{urllib.parse.quote(tag_name)}?access_token={urllib.parse.quote(token)}"
+        )
+        try:
+            res_data = api_request(get_url, timeout=60)
+            if isinstance(res_data, dict) and "id" in res_data:
+                release_id = res_data["id"]
+                print(f"✅ Found existing release ID: {release_id}")
+                return release_id
+            print(f"❌ Failed to get existing release ID, got: {res_data}")
+            sys.exit(1)
+        except Exception as ex:
+            print(f"❌ Failed to get existing release: {ex}")
+            sys.exit(1)
+
+
+def upload_file(url, file_path, token, max_retries=4):
     file_path = Path(file_path)
     file_name = file_path.name
-    
-    with open(file_path, 'rb') as f:
-        file_content = f.read()
 
-    body = (
-        f'--{boundary}\r\n'
-        f'Content-Disposition: form-data; name="access_token"\r\n\r\n'
-        f'{token}\r\n'
-        f'--{boundary}\r\n'
-        f'Content-Disposition: form-data; name="file"; filename="{file_name}"\r\n'
-        f'Content-Type: application/octet-stream\r\n\r\n'
-    ).encode('utf-8') + file_content + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+    for attempt in range(1, max_retries + 1):
+        print(f"Uploading {file_name}... (attempt {attempt}/{max_retries})")
 
-    req = urllib.request.Request(url, data=body)
-    req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
-    req.add_header('Content-Length', str(len(body)))
-    
-    try:
-        with urllib.request.urlopen(req, timeout=120) as response:
-            response.read()
+        cmd = [
+            "curl",
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--http1.1",
+            "--retry",
+            "3",
+            "--retry-all-errors",
+            "--connect-timeout",
+            "30",
+            "--max-time",
+            "1800",
+            "-F",
+            f"access_token={token}",
+            "-F",
+            f"file=@{file_path}",
+            url,
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode == 0:
             print(f"✅ Successfully uploaded {file_name}")
             return True
-    except urllib.error.HTTPError as e:
-        print(f"❌ Failed to upload {file_name}: {e.read().decode('utf-8')}")
-        return False
+
+        stderr = (result.stderr or "").strip()
+        stdout = (result.stdout or "").strip()
+        if stderr:
+            print(f"❌ Failed to upload {file_name}: {stderr}")
+        elif stdout:
+            print(f"❌ Failed to upload {file_name}: {stdout}")
+        else:
+            print(f"❌ Failed to upload {file_name}: unknown error")
+
+        if attempt < max_retries:
+            sleep_seconds = attempt * 10
+            print(f"Retrying in {sleep_seconds}s...")
+            time.sleep(sleep_seconds)
+
+    return False
+
 
 def main():
     owner = "Cyril_P"
@@ -44,72 +125,47 @@ def main():
     if not token:
         print("Error: GITEE_TOKEN is not set.")
         sys.exit(1)
-        
+
     if not tag_name or not tag_name.startswith("v"):
         print(f"Error: Invalid or missing GITHUB_REF_NAME: {tag_name}")
         sys.exit(1)
 
-    print(f"🚀 Creating Gitee release for {tag_name}...")
+    release_id = create_or_get_release(owner, repo, tag_name, token)
 
-    # 1. Create release
-    url = f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases"
-    data = {
-        "access_token": token,
-        "tag_name": tag_name,
-        "name": tag_name,
-        "body": """Windows 用户: 下载 FlowScroll_Win.exe，双击即可运行。
-macOS 用户: 下载 FlowScroll_Mac.dmg，将其拖入 Applications 文件夹，并在“安全性与隐私”中赋予辅助功能权限。
-Linux 用户（Preview）: 下载 FlowScroll_Linux_x86.AppImage，赋予执行权限后双击运行。
-注：Ubuntu Wayland 下可能无法工作，目前优先支持 Windows / macOS，Linux 仅在 X11/Xorg 环境下尝试支持""",
-        "target_commitish": os.environ.get("GITHUB_SHA", "main")
-    }
-    
-    req = urllib.request.Request(url, data=urllib.parse.urlencode(data).encode("utf-8"))
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-
-    try:
-        with urllib.request.urlopen(req) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            release_id = res_data["id"]
-            print(f"✅ Created release ID: {release_id}")
-    except urllib.error.HTTPError as e:
-        error_msg = e.read().decode('utf-8')
-        print(f"❌ Failed to create release: {error_msg}")
-        # 如果已经存在或报错，尝试获取ID
-        if "already exists" in error_msg.lower() or "missing" in error_msg.lower() or e.code >= 400:
-            print("Trying to fetch existing release ID...")
-            try:
-                get_url = f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases/tags/{tag_name}?access_token={token}"
-                with urllib.request.urlopen(urllib.request.Request(get_url)) as get_res:
-                    res_data = json.loads(get_res.read().decode("utf-8"))
-                    if res_data and isinstance(res_data, dict) and "id" in res_data:
-                        release_id = res_data["id"]
-                        print(f"✅ Found existing release ID: {release_id}")
-                    else:
-                        print(f"❌ Failed to get existing release ID, got: {res_data}")
-                        sys.exit(1)
-            except Exception as ex:
-                print(f"❌ Failed to get existing release: {ex}")
-                sys.exit(1)
-        else:
-            sys.exit(1)
-
-    # 2. Upload artifacts
     upload_url = f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases/{release_id}/attach_files"
     artifacts_dir = Path("artifacts")
-    
+
     if not artifacts_dir.exists() or not artifacts_dir.is_dir():
         print(f"Error: Artifacts directory '{artifacts_dir}' not found.")
         sys.exit(1)
 
-    files_uploaded = 0
-    for file_path in artifacts_dir.glob("*"):
-        if file_path.is_file():
-            print(f"Uploading {file_path.name}...")
-            if upload_file(upload_url, file_path, token):
-                files_uploaded += 1
+    artifact_files = sorted([p for p in artifacts_dir.glob("*") if p.is_file()])
+    if not artifact_files:
+        print(f"Error: No artifact files found in '{artifacts_dir}'.")
+        sys.exit(1)
 
-    print(f"🎉 Done! Uploaded {files_uploaded} files to Gitee.")
+    print("📦 Files to upload:")
+    for p in artifact_files:
+        size_mb = p.stat().st_size / 1024 / 1024
+        print(f" - {p.name} ({size_mb:.2f} MB)")
+
+    files_uploaded = 0
+    failed_files = []
+
+    for file_path in artifact_files:
+        if upload_file(upload_url, file_path, token):
+            files_uploaded += 1
+        else:
+            failed_files.append(file_path.name)
+
+    print(f"🎉 Done! Uploaded {files_uploaded}/{len(artifact_files)} files to Gitee.")
+
+    if failed_files:
+        print("❌ These files failed to upload:")
+        for name in failed_files:
+            print(f" - {name}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
