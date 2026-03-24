@@ -19,14 +19,14 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact_name: FlowScroll_Win_v${{ github.ref_name }}.exe
-            artifact_path: build_out/FlowScroll_Win_v${{ github.ref_name }}.exe
+            artifact_name: FlowScroll_Win_${{ github.ref_name }}.exe
+            artifact_path: build_out/FlowScroll_Win_${{ github.ref_name }}.exe
           - os: macos-latest
-            artifact_name: FlowScroll_Mac_v${{ github.ref_name }}.dmg
-            artifact_path: FlowScroll_Mac_v${{ github.ref_name }}.dmg
+            artifact_name: FlowScroll_Mac_${{ github.ref_name }}.dmg
+            artifact_path: FlowScroll_Mac_${{ github.ref_name }}.dmg
           - os: ubuntu-latest
-            artifact_name: FlowScroll_Linux_x86_v${{ github.ref_name }}.AppImage
-            artifact_path: FlowScroll_Linux_x86_v${{ github.ref_name }}.AppImage
+            artifact_name: FlowScroll_Linux_x86_${{ github.ref_name }}.AppImage
+            artifact_path: FlowScroll_Linux_x86_${{ github.ref_name }}.AppImage
 
     steps:
       - name: 检出代码 (Checkout Code)
