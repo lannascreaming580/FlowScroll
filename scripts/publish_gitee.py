@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 
 
-def api_request(url, data=None, timeout=60):
+def api_request_json(url, data=None, timeout=60):
     req = urllib.request.Request(url, data=data)
     if data is not None:
         req.add_header("Content-Type", "application/x-www-form-urlencoded")
@@ -35,7 +35,7 @@ Linux 用户（Preview）：下载对应的 .AppImage 文件，赋予执行权�
     }
 
     try:
-        res_data = api_request(
+        res_data = api_request_json(
             url,
             data=urllib.parse.urlencode(data).encode("utf-8"),
             timeout=60,
@@ -45,15 +45,15 @@ Linux 用户（Preview）：下载对应的 .AppImage 文件，赋予执行权�
         return release_id
     except urllib.error.HTTPError as e:
         error_msg = e.read().decode("utf-8", errors="ignore")
-        print(f"❌ Failed to create release: {error_msg}")
+        print(f"⚠️ Create release failed: {error_msg}")
+        print("Trying to fetch existing release by tag...")
 
-        print("Trying to fetch existing release ID...")
         get_url = (
             f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases/tags/"
             f"{urllib.parse.quote(tag_name)}?access_token={urllib.parse.quote(token)}"
         )
         try:
-            res_data = api_request(get_url, timeout=60)
+            res_data = api_request_json(get_url, timeout=60)
             if isinstance(res_data, dict) and "id" in res_data:
                 release_id = res_data["id"]
                 print(f"✅ Found existing release ID: {release_id}")
@@ -63,6 +63,53 @@ Linux 用户（Preview）：下载对应的 .AppImage 文件，赋予执行权�
         except Exception as ex:
             print(f"❌ Failed to get existing release: {ex}")
             sys.exit(1)
+
+
+def list_existing_attachments(owner, repo, release_id, token):
+    url = (
+        f"https://gitee.com/api/v5/repos/{owner}/{repo}/releases/{release_id}"
+        f"?access_token={urllib.parse.quote(token)}"
+    )
+    try:
+        res_data = api_request_json(url, timeout=60)
+
+        # 兼容不同返回结构
+        assets = []
+        if isinstance(res_data, dict):
+            for key in ("assets", "attachments", "files"):
+                value = res_data.get(key)
+                if isinstance(value, list):
+                    assets = value
+                    break
+
+        names = set()
+        for item in assets:
+            if not isinstance(item, dict):
+                continue
+            for key in ("name", "filename", "file_name"):
+                v = item.get(key)
+                if v:
+                    names.add(str(v))
+                    break
+
+        if names:
+            print("📎 Existing attachments on Gitee:")
+            for n in sorted(names):
+                print(f" - {n}")
+        else:
+            print("📎 No existing attachments found on Gitee release.")
+
+        return names
+
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode("utf-8", errors="ignore")
+        print(f"⚠️ Failed to query existing attachments: {error_msg}")
+        print("Will continue without skip-check.")
+        return set()
+    except Exception as e:
+        print(f"⚠️ Failed to query existing attachments: {e}")
+        print("Will continue without skip-check.")
+        return set()
 
 
 def upload_file(url, file_path, token, max_retries=4):
@@ -101,6 +148,20 @@ def upload_file(url, file_path, token, max_retries=4):
 
         stderr = (result.stderr or "").strip()
         stdout = (result.stdout or "").strip()
+
+        # 如果接口返回“已存在/重复”之类的报错，视为成功，保证幂等
+        duplicate_signals = [
+            "already exists",
+            "duplicate",
+            "duplicated",
+            "has been taken",
+            "file exists",
+        ]
+        combined = f"{stdout}\n{stderr}".lower()
+        if any(s in combined for s in duplicate_signals):
+            print(f"⏭️ Attachment already exists on Gitee, skip: {file_name}")
+            return True
+
         if stderr:
             print(f"❌ Failed to upload {file_name}: {stderr}")
         elif stdout:
@@ -144,21 +205,32 @@ def main():
         print(f"Error: No artifact files found in '{artifacts_dir}'.")
         sys.exit(1)
 
-    print("📦 Files to upload:")
+    print("📦 Files to process:")
     for p in artifact_files:
         size_mb = p.stat().st_size / 1024 / 1024
         print(f" - {p.name} ({size_mb:.2f} MB)")
 
+    existing_names = list_existing_attachments(owner, repo, release_id, token)
+
     files_uploaded = 0
+    files_skipped = 0
     failed_files = []
 
     for file_path in artifact_files:
+        if file_path.name in existing_names:
+            print(f"⏭️ Skip existing attachment: {file_path.name}")
+            files_skipped += 1
+            continue
+
         if upload_file(upload_url, file_path, token):
             files_uploaded += 1
         else:
             failed_files.append(file_path.name)
 
-    print(f"🎉 Done! Uploaded {files_uploaded}/{len(artifact_files)} files to Gitee.")
+    print(
+        f"🎉 Done! Uploaded {files_uploaded}/{len(artifact_files)} files, "
+        f"skipped {files_skipped} existing files."
+    )
 
     if failed_files:
         print("❌ These files failed to upload:")
