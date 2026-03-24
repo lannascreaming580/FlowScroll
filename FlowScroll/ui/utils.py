@@ -10,9 +10,13 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS
     elif "__compiled__" in globals() or hasattr(sys, 'frozen'):
         # Nuitka 模式下
-        # 对于 Nuitka standalone 和 onefile，打包的 data-dir 或 data-files 
-        # 会被放置在可执行文件（在 onefile 模式下是解压后的临时可执行文件）所在的同级目录中。
-        base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+        # Nuitka 临时解压目录与 __file__ 相关，sys.argv[0] 指向的是外层的原 exe。
+        # 我们使用当前 utils.py 所在的目录结构向上回溯到项目根目录（打包后的数据根目录）。
+        # FlowScroll/ui/utils.py -> 退 2 层 -> FlowScroll -> 再退1层 -> 根目录
+        try:
+            base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        except NameError:
+            base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     else:
         # 开发源码环境
         base_path = os.path.abspath(".")
