@@ -14,7 +14,6 @@ class ScrollEngine(threading.Thread):
         self.strategy = default_scroll_strategy
 
     def run(self):
-        last_dir = "neutral"
         platform_multiplier = system_platform.get_scroll_multiplier()
 
         while True:
@@ -27,20 +26,7 @@ class ScrollEngine(threading.Thread):
                         dx = 0
 
                     dist = math.hypot(dx, dy)
-                    current_dir = "neutral"
 
-                    if dist > cfg.dead_zone:
-                        if abs(dx) > abs(dy):
-                            current_dir = "right" if dx > 0 else "left"
-                        else:
-                            current_dir = "down" if dy > 0 else "up"
-
-                    # 仅在方向改变时发射信号更新 UI
-                    if current_dir != last_dir:
-                        self.bridge.update_direction.emit(current_dir)
-                        last_dir = current_dir
-
-                    # 计算并注入滚动
                     scroll_x, scroll_y = self.strategy.calculate_scroll_speed(
                         dx, dy, dist, cfg, platform_multiplier
                     )
@@ -52,5 +38,4 @@ class ScrollEngine(threading.Thread):
                 except Exception:
                     pass
             else:
-                last_dir = "neutral"
                 time.sleep(0.05)

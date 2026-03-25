@@ -2,6 +2,63 @@ import os
 
 CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".FlowScroll_config.json")
 
+BUILTIN_PRESETS = {
+    "网页阅读": {
+        "sensitivity": 1.5,
+        "speed_factor": 3.0,
+        "dead_zone": 25.0,
+        "overlay_size": 60.0,
+        "enable_horizontal": False,
+        "minimize_to_tray": True,
+        "horizontal_hotkey": "",
+        "filter_mode": 0,
+        "filter_list": [],
+        "disable_fullscreen": True,
+        "disable_desktop": True,
+    },
+    "代码办公": {
+        "sensitivity": 2.5,
+        "speed_factor": 2.5,
+        "dead_zone": 15.0,
+        "overlay_size": 60.0,
+        "enable_horizontal": False,
+        "minimize_to_tray": True,
+        "horizontal_hotkey": "",
+        "filter_mode": 0,
+        "filter_list": [],
+        "disable_fullscreen": True,
+        "disable_desktop": True,
+    },
+    "长文档/表格": {
+        "sensitivity": 2.0,
+        "speed_factor": 2.0,
+        "dead_zone": 20.0,
+        "overlay_size": 60.0,
+        "enable_horizontal": True,
+        "minimize_to_tray": True,
+        "horizontal_hotkey": "",
+        "filter_mode": 0,
+        "filter_list": [],
+        "disable_fullscreen": True,
+        "disable_desktop": True,
+    },
+    "轻柔/接近触控板": {
+        "sensitivity": 1.2,
+        "speed_factor": 1.5,
+        "dead_zone": 10.0,
+        "overlay_size": 60.0,
+        "enable_horizontal": False,
+        "minimize_to_tray": True,
+        "horizontal_hotkey": "",
+        "filter_mode": 0,
+        "filter_list": [],
+        "disable_fullscreen": True,
+        "disable_desktop": True,
+    },
+}
+
+DEFAULT_PRESET_NAME = "长文档/表格"
+
 
 class GlobalConfig:
     """
@@ -11,16 +68,17 @@ class GlobalConfig:
 
     def __init__(self):
         # ==========================================
-        # 1. 持久化用户配置
+        # 1. 持久化用户配置 (默认值 = 长文档/表格 预设)
         # ==========================================
         self.config_version = 2
 
-        self.dead_zone = 20.0
-        self.sensitivity = 2.0
-        self.speed_factor = 2.0
-        self.overlay_size = 60.0
-        self.enable_horizontal = True
-        self.minimize_to_tray = True  # Default: on
+        defaults = BUILTIN_PRESETS[DEFAULT_PRESET_NAME]
+        self.dead_zone = defaults["dead_zone"]
+        self.sensitivity = defaults["sensitivity"]
+        self.speed_factor = defaults["speed_factor"]
+        self.overlay_size = defaults["overlay_size"]
+        self.enable_horizontal = defaults["enable_horizontal"]
+        self.minimize_to_tray = defaults["minimize_to_tray"]
 
         self.horizontal_hotkey = ""
 

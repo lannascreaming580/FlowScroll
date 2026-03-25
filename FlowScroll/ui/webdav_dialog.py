@@ -1,6 +1,5 @@
 import base64
 import urllib.request
-import urllib.error
 from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,

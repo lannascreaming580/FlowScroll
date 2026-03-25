@@ -67,23 +67,48 @@ def build_parameter_tab(main_window):
         decimals=1,
     )
     core_layout.addWidget(create_h_line())
-    main_window.ui_widgets["overlay_size"] = add_slider_row(
-        core_layout,
-        "overlay_size",
-        "ic_size.svg",
-        "导航指示器大小 (UI Size)",
-        cfg.overlay_size,
-        30,
-        150,
-        lambda v: (
-            setattr(cfg, "overlay_size", v),
-            main_window.bridge.update_size.emit(int(v)),
-            main_window.bridge.preview_size.emit(),
-        ),
-        decimals=0,
-    )
 
     tab1_layout.addWidget(core_card)
+
+    # --- 预设管理 (Presets) ---
+    lbl_preset = QLabel("配置预设 Presets")
+    lbl_preset.setObjectName("SectionTitle")
+    tab1_layout.addWidget(lbl_preset)
+
+    preset_card, preset_layout_card = create_card()
+
+    preset_row = QHBoxLayout()
+    preset_row.setSpacing(12)
+
+    main_window.combo_presets = QComboBox()
+    main_window.combo_presets.addItems(main_window._all_preset_names())
+    main_window.combo_presets.setCurrentText(main_window.current_preset_name)
+    main_window.combo_presets.currentTextChanged.connect(
+        main_window.load_selected_preset
+    )
+    main_window.combo_presets.setFocusPolicy(Qt.NoFocus)
+    main_window.combo_presets.setCursor(Qt.PointingHandCursor)
+    main_window.combo_presets.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+    main_window.combo_presets.setFixedHeight(38)
+    preset_row.addWidget(main_window.combo_presets, 1)
+
+    btn_save = QPushButton("保存为新预设")
+    btn_save.setObjectName("BtnPrimary")
+    btn_save.setFocusPolicy(Qt.NoFocus)
+    btn_save.setCursor(Qt.PointingHandCursor)
+    btn_save.clicked.connect(main_window.save_new_preset)
+    preset_row.addWidget(btn_save)
+
+    btn_del = QPushButton("删除")
+    btn_del.setObjectName("BtnDanger")
+    btn_del.setFocusPolicy(Qt.NoFocus)
+    btn_del.setCursor(Qt.PointingHandCursor)
+    btn_del.clicked.connect(main_window.delete_preset)
+    preset_row.addWidget(btn_del)
+
+    preset_layout_card.addLayout(preset_row)
+
+    tab1_layout.addWidget(preset_card)
 
     # --- Author Info ---
     author_layout = QHBoxLayout()
@@ -93,6 +118,15 @@ def build_parameter_tab(main_window):
     main_window.btn_github.setCursor(Qt.PointingHandCursor)
     main_window.btn_github.setObjectName("BtnIcon")
 
+    # NEW badge (hidden by default, shown by on_update_available)
+    main_window.lbl_new_badge = QLabel("NEW")
+    main_window.lbl_new_badge.setStyleSheet(
+        "background-color: #EF4444; color: white; font-size: 10px; "
+        "font-weight: 800; padding: 2px 6px; border-radius: 8px;"
+    )
+    main_window.lbl_new_badge.setFixedHeight(20)
+    main_window.lbl_new_badge.setVisible(False)
+
     # Load and set GitHub SVG Icon
     gh_path = resource_path(os.path.join("FlowScroll", "resources", "github_icon.svg"))
     if os.path.exists(gh_path):
@@ -100,16 +134,8 @@ def build_parameter_tab(main_window):
         main_window.btn_github.setIconSize(QSize(20, 20))
 
     main_window.btn_github.setText(" GitHub · 某不科学的高数")
-    import webbrowser
 
-    main_window.btn_github.clicked.connect(
-        lambda: webbrowser.open(
-            getattr(
-                main_window, "github_url", "https://github.com/CyrilPeng/FlowScroll"
-            )
-        )
-    )
-
+    author_layout.addWidget(main_window.lbl_new_badge)
     author_layout.addWidget(main_window.btn_github)
     tab1_layout.addLayout(author_layout)
 
@@ -150,7 +176,6 @@ def build_advanced_tab(main_window):
     btn_gear = QPushButton()
     btn_gear.setObjectName("BtnIcon")
     btn_gear.setCursor(Qt.PointingHandCursor)
-    btn_gear.setToolTip("设置快捷键")
     gear_path = resource_path(os.path.join("FlowScroll", "resources", "ic_gear.svg"))
     if os.path.exists(gear_path):
         btn_gear.setIcon(QIcon(gear_path))
@@ -214,45 +239,13 @@ def build_advanced_tab(main_window):
 
     tab2_layout.addWidget(work_mode_card)
 
-    # Section: 预设管理 (Presets)
-    lbl_preset = QLabel("配置预设 Presets")
-    lbl_preset.setObjectName("SectionTitle")
-    tab2_layout.addWidget(lbl_preset)
+    # Section: 云同步 (Cloud Sync)
+    lbl_cloud = QLabel("云同步 Cloud Sync")
+    lbl_cloud.setObjectName("SectionTitle")
+    tab2_layout.addWidget(lbl_cloud)
 
-    preset_card, preset_layout_card = create_card()
+    cloud_card, cloud_layout = create_card()
 
-    preset_row = QHBoxLayout()
-    preset_row.setSpacing(12)
-
-    main_window.combo_presets = QComboBox()
-    main_window.combo_presets.addItems(list(main_window.presets.keys()))
-    main_window.combo_presets.setCurrentText(main_window.current_preset_name)
-    main_window.combo_presets.currentTextChanged.connect(
-        main_window.load_selected_preset
-    )
-    main_window.combo_presets.setFocusPolicy(Qt.NoFocus)
-    main_window.combo_presets.setCursor(Qt.PointingHandCursor)
-    main_window.combo_presets.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    main_window.combo_presets.setFixedHeight(38)
-    preset_row.addWidget(main_window.combo_presets, 1)
-
-    btn_save = QPushButton("保存为新预设")
-    btn_save.setObjectName("BtnPrimary")
-    btn_save.setFocusPolicy(Qt.NoFocus)
-    btn_save.setCursor(Qt.PointingHandCursor)
-    btn_save.clicked.connect(main_window.save_new_preset)
-    preset_row.addWidget(btn_save)
-
-    btn_del = QPushButton("删除")
-    btn_del.setObjectName("BtnDanger")
-    btn_del.setFocusPolicy(Qt.NoFocus)
-    btn_del.setCursor(Qt.PointingHandCursor)
-    btn_del.clicked.connect(main_window.delete_preset)
-    preset_row.addWidget(btn_del)
-
-    preset_layout_card.addLayout(preset_row)
-
-    preset_layout_card.addWidget(create_h_line())
     btn_webdav = QPushButton(" WebDAV 云同步配置")
     btn_webdav.setObjectName("BtnAdv")
     btn_webdav.setCursor(Qt.PointingHandCursor)
@@ -261,9 +254,9 @@ def build_advanced_tab(main_window):
         btn_webdav.setIcon(QIcon(cloud_path))
         btn_webdav.setIconSize(QSize(18, 18))
     btn_webdav.clicked.connect(main_window.open_webdav_settings)
-    preset_layout_card.addWidget(btn_webdav)
+    cloud_layout.addWidget(btn_webdav)
 
-    tab2_layout.addWidget(preset_card)
+    tab2_layout.addWidget(cloud_card)
 
     # Add stretch to make content fit height
     tab2_layout.addStretch()

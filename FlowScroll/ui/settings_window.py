@@ -22,19 +22,22 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QObject, QSize
 from PySide6.QtGui import (
     QIcon,
-    QCursor,
     QAction,
     QKeySequence,
 )
 
 from FlowScroll.platform import system_platform
-from FlowScroll.core.config import cfg, CONFIG_FILE
+from FlowScroll.core.config import (
+    cfg,
+    CONFIG_FILE,
+    BUILTIN_PRESETS,
+    DEFAULT_PRESET_NAME,
+)
 from FlowScroll.core.engine import ScrollEngine
 from FlowScroll.core.rules import is_current_app_allowed
 from FlowScroll.input.listeners import GlobalInputListener
 from FlowScroll.services.autostart import AutoStartManager
 
-from FlowScroll.ui.overlay import ResizableOverlay
 from FlowScroll.ui.webdav_dialog import WebDAVSyncDialog
 from FlowScroll.ui.components import HotkeyEdit
 from FlowScroll.ui.utils import resource_path
@@ -46,11 +49,6 @@ mouse_controller = mouse.Controller()
 
 # --- 逻辑信号桥接 ---
 class LogicBridge(QObject):
-    show_overlay = Signal()
-    hide_overlay = Signal()
-    update_direction = Signal(str)
-    update_size = Signal(int)
-    preview_size = Signal()
     toggle_horizontal = Signal()
 
 
@@ -83,12 +81,11 @@ class MainWindow(QMainWindow):
         self.resize(650, 720)
 
         self.bridge = LogicBridge()
-        self.overlay = ResizableOverlay()
         self.autostart = AutoStartManager()
 
         self.ui_widgets = {}
-        self.presets = {"默认": cfg.to_dict()}
-        self.current_preset_name = "默认"
+        self.presets = {}
+        self.current_preset_name = DEFAULT_PRESET_NAME
         self.github_url = "https://github.com/CyrilPeng/FlowScroll"
 
         self.load_presets_from_file()
@@ -99,11 +96,6 @@ class MainWindow(QMainWindow):
 
         self.init_system_tray(icon_name)
 
-        self.bridge.show_overlay.connect(self.on_show_overlay)
-        self.bridge.hide_overlay.connect(self.on_hide_overlay)
-        self.bridge.update_direction.connect(self.overlay.set_direction)
-        self.bridge.update_size.connect(self.overlay.update_geometry)
-        self.bridge.preview_size.connect(self.overlay.show_preview)
         self.bridge.toggle_horizontal.connect(self.on_toggle_horizontal_hotkey)
 
         self.init_ui()
@@ -120,29 +112,31 @@ class MainWindow(QMainWindow):
     def on_update_available(self, latest_version, html_url):
         if latest_version != self.current_version:
             self.github_url = html_url
-            if hasattr(self, "btn_github"):
-                self.btn_github.setToolTip(
-                    f"发现新版本: v{latest_version}\n点击前往下载"
-                )
-                yellow_icon_path = resource_path(
-                    os.path.join("FlowScroll", "resources", "github_icon_yellow.svg")
-                )
-                if os.path.exists(yellow_icon_path):
-                    self.btn_github.setIcon(QIcon(yellow_icon_path))
-                self.btn_github.setStyleSheet("color: #EAB308;")
+            if hasattr(self, "lbl_new_badge"):
+                self.lbl_new_badge.setVisible(True)
 
     def load_presets_from_file(self):
         if os.path.exists(CONFIG_FILE):
             try:
                 with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.presets = data.get("presets", {"默认": cfg.to_dict()})
-                    last_used = data.get("last_used", "默认")
-                    if last_used in self.presets:
+                    self.presets = data.get("presets", {})
+                    last_used = data.get("last_used", DEFAULT_PRESET_NAME)
+                    if last_used in BUILTIN_PRESETS:
+                        self.current_preset_name = last_used
+                        cfg.from_dict(BUILTIN_PRESETS[last_used])
+                    elif last_used in self.presets:
                         self.current_preset_name = last_used
                         cfg.from_dict(self.presets[last_used])
+                    else:
+                        self.current_preset_name = DEFAULT_PRESET_NAME
+                        cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
             except Exception:
-                pass
+                self.current_preset_name = DEFAULT_PRESET_NAME
+                cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
+        else:
+            self.current_preset_name = DEFAULT_PRESET_NAME
+            cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
 
     def save_presets_to_file(self):
         data = {"presets": self.presets, "last_used": self.current_preset_name}
@@ -151,6 +145,16 @@ class MainWindow(QMainWindow):
                 json.dump(data, f, ensure_ascii=False, indent=4)
         except Exception:
             pass
+
+    def _all_preset_names(self):
+        return list(BUILTIN_PRESETS.keys()) + list(self.presets.keys())
+
+    def _refresh_combo(self, select_name):
+        self.combo_presets.blockSignals(True)
+        self.combo_presets.clear()
+        self.combo_presets.addItems(self._all_preset_names())
+        self.combo_presets.setCurrentText(select_name)
+        self.combo_presets.blockSignals(False)
 
     def init_system_tray(self, icon_name):
         self.tray_icon = QSystemTrayIcon(self)
@@ -260,7 +264,6 @@ class MainWindow(QMainWindow):
         btn_help = QPushButton("?")
         btn_help.setObjectName("BtnIcon")
         btn_help.setCursor(Qt.PointingHandCursor)
-        btn_help.setToolTip("功能说明与帮助")
         btn_help.setStyleSheet("""
             QPushButton {
                 font-size: 16px; 
@@ -431,59 +434,53 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "设置失败", "权限不足或路径错误。")
 
     def save_new_preset(self):
+        suggested = self.current_preset_name
+        if suggested in BUILTIN_PRESETS:
+            suggested = ""
         text, ok = QInputDialog.getText(
-            self, "保存参数", "请输入预设名称:", text=self.current_preset_name
+            self, "保存预设", "请输入预设名称:", text=suggested
         )
         if ok and text:
+            if text in BUILTIN_PRESETS:
+                QMessageBox.warning(
+                    self, "提示", "内置预设名称不可使用，请换一个名称。"
+                )
+                return
             self.presets[text] = cfg.to_dict()
             self.current_preset_name = text
             self.save_presets_to_file()
-            self.combo_presets.blockSignals(True)
-            self.combo_presets.clear()
-            self.combo_presets.addItems(list(self.presets.keys()))
-            self.combo_presets.setCurrentText(text)
-            self.combo_presets.blockSignals(False)
+            self._refresh_combo(text)
 
     def delete_preset(self):
         name = self.combo_presets.currentText()
-        if name == "默认":
-            QMessageBox.warning(self, "提示", "默认配置无法删除。")
+        if name in BUILTIN_PRESETS:
+            QMessageBox.warning(self, "提示", "内置预设无法删除。")
+            return
+        if name not in self.presets:
             return
         del self.presets[name]
-        self.current_preset_name = "默认"
+        self.current_preset_name = DEFAULT_PRESET_NAME
         self.save_presets_to_file()
-        self.combo_presets.blockSignals(True)
-        self.combo_presets.clear()
-        self.combo_presets.addItems(list(self.presets.keys()))
-        self.combo_presets.setCurrentText("默认")
-        self.combo_presets.blockSignals(False)
-        self.load_selected_preset("默认")
+        self._refresh_combo(DEFAULT_PRESET_NAME)
+        self.load_selected_preset(DEFAULT_PRESET_NAME)
 
     def load_selected_preset(self, name):
-        if name in self.presets:
+        if name in BUILTIN_PRESETS:
+            cfg.from_dict(BUILTIN_PRESETS[name])
+            self.current_preset_name = name
+        elif name in self.presets:
             cfg.from_dict(self.presets[name])
             self.current_preset_name = name
-            self.ui_widgets["sensitivity"].setValue(cfg.sensitivity)
-            self.ui_widgets["speed_factor"].setValue(cfg.speed_factor)
-            self.ui_widgets["dead_zone"].setValue(cfg.dead_zone)
-            self.ui_widgets["overlay_size"].setValue(cfg.overlay_size)
-            self.ui_widgets["enable_horizontal"].setChecked(cfg.enable_horizontal)
-            self.ui_widgets["minimize_to_tray"].setChecked(cfg.minimize_to_tray)
+        else:
+            return
+        self.ui_widgets["sensitivity"].setValue(cfg.sensitivity)
+        self.ui_widgets["speed_factor"].setValue(cfg.speed_factor)
+        self.ui_widgets["dead_zone"].setValue(cfg.dead_zone)
+        self.ui_widgets["enable_horizontal"].setChecked(cfg.enable_horizontal)
+        self.ui_widgets["minimize_to_tray"].setChecked(cfg.minimize_to_tray)
 
-            self.update_hotkey_label()
-            self.save_presets_to_file()
-
-    def on_show_overlay(self):
-        self.overlay.set_direction("neutral")
-        self.overlay.move(
-            int(QCursor.pos().x() - cfg.overlay_size / 2),
-            int(QCursor.pos().y() - cfg.overlay_size / 2),
-        )
-        self.overlay.show()
-        self.overlay.raise_()
-
-    def on_hide_overlay(self):
-        self.overlay.hide()
+        self.update_hotkey_label()
+        self.save_presets_to_file()
 
     def start_threads(self):
         try:
