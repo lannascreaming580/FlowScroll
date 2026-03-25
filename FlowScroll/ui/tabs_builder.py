@@ -5,9 +5,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QCheckBox,
-    QRadioButton,
-    QButtonGroup,
-    QTextEdit,
     QComboBox,
     QSizePolicy,
 )
@@ -16,8 +13,14 @@ from PySide6.QtGui import QIcon
 
 from FlowScroll.core.config import cfg
 from FlowScroll.ui.utils import resource_path
-from FlowScroll.ui.helpers import create_card, create_h_line, add_slider_row, add_toggle_row
+from FlowScroll.ui.helpers import (
+    create_card,
+    create_h_line,
+    add_slider_row,
+    add_toggle_row,
+)
 import os
+
 
 def build_parameter_tab(main_window):
     tab1_widget = QWidget()
@@ -91,17 +94,20 @@ def build_parameter_tab(main_window):
     main_window.btn_github.setObjectName("BtnIcon")
 
     # Load and set GitHub SVG Icon
-    gh_path = resource_path(
-        os.path.join("FlowScroll", "resources", "github_icon.svg")
-    )
+    gh_path = resource_path(os.path.join("FlowScroll", "resources", "github_icon.svg"))
     if os.path.exists(gh_path):
         main_window.btn_github.setIcon(QIcon(gh_path))
         main_window.btn_github.setIconSize(QSize(20, 20))
 
     main_window.btn_github.setText(" GitHub · 某不科学的高数")
     import webbrowser
+
     main_window.btn_github.clicked.connect(
-        lambda: webbrowser.open(getattr(main_window, 'github_url', "https://github.com/CyrilPeng/FlowScroll"))
+        lambda: webbrowser.open(
+            getattr(
+                main_window, "github_url", "https://github.com/CyrilPeng/FlowScroll"
+            )
+        )
     )
 
     author_layout.addWidget(main_window.btn_github)
@@ -187,49 +193,26 @@ def build_advanced_tab(main_window):
 
     adv_layout.addWidget(create_h_line())
 
-    adv_layout.addWidget(
-        QLabel("<span style='font-weight: 600; color: #E2E8F0;'>工作模式</span>")
-    )
-
-    # Radio button group for filter modes
-    main_window.filter_button_group = QButtonGroup(main_window)
-
-    # Global mode radio button
-    main_window.radio_global = QRadioButton("全局模式")
-    main_window.radio_global.setStyleSheet(
-        "color: #E2E8F0; font-size: 14px; font-weight: 600; spacing: 12px; min-height: 24px;"
-    )
-    main_window.radio_global.setChecked(cfg.filter_mode == 0)
-    main_window.radio_global.setCursor(Qt.PointingHandCursor)
-    main_window.filter_button_group.addButton(main_window.radio_global, 0)
-    adv_layout.addWidget(main_window.radio_global)
-
-    # Blacklist mode radio button
-    main_window.radio_blacklist = QRadioButton("黑名单模式")
-    main_window.radio_blacklist.setStyleSheet(
-        "color: #E2E8F0; font-size: 14px; font-weight: 600; spacing: 12px; min-height: 24px;"
-    )
-    main_window.radio_blacklist.setChecked(cfg.filter_mode == 1)
-    main_window.radio_blacklist.setCursor(Qt.PointingHandCursor)
-    main_window.filter_button_group.addButton(main_window.radio_blacklist, 1)
-    adv_layout.addWidget(main_window.radio_blacklist)
-
-    # Connect radio buttons
-    main_window.filter_button_group.idClicked.connect(main_window.on_filter_mode_changed)
-
-    adv_layout.addWidget(
-        QLabel(
-            f"<span style='font-weight: 600; color: #E2E8F0;'>黑名单</span><br><span style='color: #94A3B8; font-size: 12px;'>例如输入 'potplayer' 就可以禁止在该播放器中使用，修改即时生效。<br><img src='{resource_path(os.path.join('FlowScroll', 'resources', 'ic_lightbulb.svg'))}' width='12' height='12'> <b>提示：</b>每行输入一个，不区分大小写，可通过任务管理器查看进程名进行精准设置。</span>"
-        )
-    )
-    main_window.text_edit = QTextEdit()
-    main_window.text_edit.setPlainText("\n".join(cfg.filter_list))
-    main_window.text_edit.textChanged.connect(main_window.on_filter_list_changed)
-    main_window.text_edit.setMaximumHeight(80)
-    main_window.text_edit.setEnabled(cfg.filter_mode != 0)
-    adv_layout.addWidget(main_window.text_edit)
-
     tab2_layout.addWidget(adv_card)
+
+    # Section: 工作模式 (Work Mode)
+    lbl_work_mode = QLabel("工作模式 Work Mode")
+    lbl_work_mode.setObjectName("SectionTitle")
+    tab2_layout.addWidget(lbl_work_mode)
+
+    work_mode_card, work_mode_layout = create_card()
+
+    btn_work_mode = QPushButton("配置工作模式与应用过滤")
+    btn_work_mode.setObjectName("BtnAdv")
+    btn_work_mode.setCursor(Qt.PointingHandCursor)
+    move_path = resource_path(os.path.join("FlowScroll", "resources", "ic_move.svg"))
+    if os.path.exists(move_path):
+        btn_work_mode.setIcon(QIcon(move_path))
+        btn_work_mode.setIconSize(QSize(18, 18))
+    btn_work_mode.clicked.connect(main_window.open_work_mode_dialog)
+    work_mode_layout.addWidget(btn_work_mode)
+
+    tab2_layout.addWidget(work_mode_card)
 
     # Section: 预设管理 (Presets)
     lbl_preset = QLabel("配置预设 Presets")
@@ -244,7 +227,9 @@ def build_advanced_tab(main_window):
     main_window.combo_presets = QComboBox()
     main_window.combo_presets.addItems(list(main_window.presets.keys()))
     main_window.combo_presets.setCurrentText(main_window.current_preset_name)
-    main_window.combo_presets.currentTextChanged.connect(main_window.load_selected_preset)
+    main_window.combo_presets.currentTextChanged.connect(
+        main_window.load_selected_preset
+    )
     main_window.combo_presets.setFocusPolicy(Qt.NoFocus)
     main_window.combo_presets.setCursor(Qt.PointingHandCursor)
     main_window.combo_presets.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)

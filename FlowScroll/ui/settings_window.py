@@ -398,11 +398,6 @@ class MainWindow(QMainWindow):
         else:
             self.adv_btn_toggle.setText("▶ 高级设置 Advanced Settings")
 
-    def on_filter_list_changed(self):
-        lines = self.text_edit.toPlainText().split("\n")
-        cfg.filter_list = [line.strip() for line in lines if line.strip()]
-        self.save_presets_to_file()
-
     def on_toggle_horizontal_hotkey(self):
         new_state = not cfg.enable_horizontal
         setattr(cfg, "enable_horizontal", new_state)
@@ -418,6 +413,13 @@ class MainWindow(QMainWindow):
 
     def open_webdav_settings(self):
         dialog = WebDAVSyncDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            self.save_presets_to_file()
+
+    def open_work_mode_dialog(self):
+        from FlowScroll.ui.dialogs import WorkModeDialog
+
+        dialog = WorkModeDialog(self)
         if dialog.exec() == QDialog.Accepted:
             self.save_presets_to_file()
 
@@ -457,11 +459,6 @@ class MainWindow(QMainWindow):
         self.combo_presets.blockSignals(False)
         self.load_selected_preset("默认")
 
-    def on_filter_mode_changed(self, mode_id):
-        cfg.filter_mode = mode_id
-        # Enable/disable blacklist text edit based on mode
-        self.text_edit.setEnabled(mode_id != 0)
-
     def load_selected_preset(self, name):
         if name in self.presets:
             cfg.from_dict(self.presets[name])
@@ -472,14 +469,6 @@ class MainWindow(QMainWindow):
             self.ui_widgets["overlay_size"].setValue(cfg.overlay_size)
             self.ui_widgets["enable_horizontal"].setChecked(cfg.enable_horizontal)
             self.ui_widgets["minimize_to_tray"].setChecked(cfg.minimize_to_tray)
-
-            # Update radio buttons and text edit
-            if cfg.filter_mode == 0:
-                self.radio_global.setChecked(True)
-            else:
-                self.radio_blacklist.setChecked(True)
-            self.text_edit.setEnabled(cfg.filter_mode != 0)
-            self.text_edit.setPlainText("\n".join(cfg.filter_list))
 
             self.update_hotkey_label()
             self.save_presets_to_file()
