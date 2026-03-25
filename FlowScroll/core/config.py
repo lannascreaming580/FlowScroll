@@ -26,9 +26,8 @@ class GlobalConfig:
 
         self.filter_mode = 0
         self.filter_list = []
-        self.disable_fullscreen = (
-            True  # Merged from disable_fullscreen and disable_desktop
-        )
+        self.disable_fullscreen = True
+        self.disable_desktop = True
 
         # ==========================================
         # WebDAV Sync Config
@@ -59,6 +58,7 @@ class GlobalConfig:
             "filter_mode": self.filter_mode,
             "filter_list": self.filter_list,
             "disable_fullscreen": self.disable_fullscreen,
+            "disable_desktop": self.disable_desktop,
             "webdav_url": self.webdav_url,
             "webdav_username": self.webdav_username,
             "webdav_password": self.webdav_password,
@@ -78,6 +78,7 @@ class GlobalConfig:
         self.filter_mode = data.get("filter_mode", 0)
         self.filter_list = data.get("filter_list", [])
         self.disable_fullscreen = data.get("disable_fullscreen", True)
+        self.disable_desktop = data.get("disable_desktop", True)
         self.webdav_url = data.get("webdav_url", "")
         self.webdav_username = data.get("webdav_username", "")
         self.webdav_password = data.get("webdav_password", "")
