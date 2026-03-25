@@ -30,6 +30,7 @@ from PySide6.QtGui import (
 from FlowScroll.platform import system_platform
 from FlowScroll.core.config import cfg, CONFIG_FILE
 from FlowScroll.core.engine import ScrollEngine
+from FlowScroll.core.rules import is_current_app_allowed
 from FlowScroll.input.listeners import GlobalInputListener
 from FlowScroll.services.autostart import AutoStartManager
 
@@ -41,6 +42,7 @@ from FlowScroll.ui.styles import get_main_stylesheet
 from FlowScroll.services.window_monitor import WindowMonitor
 
 mouse_controller = mouse.Controller()
+
 
 # --- 逻辑信号桥接 ---
 class LogicBridge(QObject):
@@ -67,9 +69,10 @@ class MainWindow(QMainWindow):
             main_path = resource_path("main.py")
             if os.path.exists(main_path):
                 import re
+
                 with open(main_path, "r", encoding="utf-8") as f:
                     content = f.read()
-                    match = re.search(r'版本\s*v?([\d\.]+)', content)
+                    match = re.search(r"版本\s*v?([\d\.]+)", content)
                     if match:
                         self.current_version = match.group(1)
         except Exception:
@@ -109,6 +112,7 @@ class MainWindow(QMainWindow):
 
     def check_for_updates(self):
         from FlowScroll.services.update_checker import UpdateCheckerThread
+
         self.update_checker = UpdateCheckerThread(self)
         self.update_checker.update_available.connect(self.on_update_available)
         self.update_checker.start()
@@ -116,9 +120,13 @@ class MainWindow(QMainWindow):
     def on_update_available(self, latest_version, html_url):
         if latest_version != self.current_version:
             self.github_url = html_url
-            if hasattr(self, 'btn_github'):
-                self.btn_github.setToolTip(f"发现新版本: v{latest_version}\n点击前往下载")
-                yellow_icon_path = resource_path(os.path.join("FlowScroll", "resources", "github_icon_yellow.svg"))
+            if hasattr(self, "btn_github"):
+                self.btn_github.setToolTip(
+                    f"发现新版本: v{latest_version}\n点击前往下载"
+                )
+                yellow_icon_path = resource_path(
+                    os.path.join("FlowScroll", "resources", "github_icon_yellow.svg")
+                )
                 if os.path.exists(yellow_icon_path):
                     self.btn_github.setIcon(QIcon(yellow_icon_path))
                 self.btn_github.setStyleSheet("color: #EAB308;")
@@ -363,7 +371,9 @@ class MainWindow(QMainWindow):
         """)
 
         def img(name):
-            path = resource_path(os.path.join("FlowScroll", "resources", name)).replace("\\", "/")
+            path = resource_path(os.path.join("FlowScroll", "resources", name)).replace(
+                "\\", "/"
+            )
             return f"<img src='{path}' width='14' height='14'>"
 
         help_text = (
@@ -495,7 +505,7 @@ class MainWindow(QMainWindow):
 
         try:
             self.input_listener = GlobalInputListener(
-                self.bridge, self.is_current_app_allowed
+                self.bridge, is_current_app_allowed
             )
             self.input_listener.start()
         except Exception:
@@ -511,23 +521,3 @@ class MainWindow(QMainWindow):
             self.scroller.start()
         except Exception:
             pass
-
-    def is_current_app_allowed(self):
-        if cfg.disable_fullscreen and cfg.is_fullscreen:
-            return False
-
-        if cfg.filter_mode == 0:
-            return True
-
-        app_name = cfg.current_window_name.lower()
-        if cfg.filter_mode == 1:
-            for keyword in cfg.filter_list:
-                if keyword.lower() in app_name:
-                    return False
-            return True
-        elif cfg.filter_mode == 2:
-            for keyword in cfg.filter_list:
-                if keyword.lower() in app_name:
-                    return True
-            return False
-        return True
