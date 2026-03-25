@@ -134,6 +134,15 @@ def build_parameter_tab(main_window):
         main_window.btn_github.setIconSize(QSize(20, 20))
 
     main_window.btn_github.setText(" GitHub · 某不科学的高数")
+    import webbrowser
+
+    main_window.btn_github.clicked.connect(
+        lambda: webbrowser.open(
+            getattr(
+                main_window, "github_url", "https://github.com/CyrilPeng/FlowScroll"
+            )
+        )
+    )
 
     author_layout.addWidget(main_window.lbl_new_badge)
     author_layout.addWidget(main_window.btn_github)
