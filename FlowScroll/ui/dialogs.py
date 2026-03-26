@@ -219,12 +219,6 @@ class WorkModeDialog(QDialog):
         wrapper.setContentsMargins(24, 0, 0, 0)
         wrapper.setSpacing(8)
 
-        hint = QLabel(
-            "<span style='color: #CBD5E1; font-size: 12px;'>设置启用键 ↓</span>"
-        )
-        hint.setWordWrap(True)
-        wrapper.addWidget(hint)
-
         row = QHBoxLayout()
         row.setSpacing(8)
 
@@ -269,7 +263,7 @@ class InertiaSettingsDialog(QDialog):
 
         # --- 使用建议 ---
         hint_label = QLabel(
-            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "<span style='color: #94A3B8; font-size: 13px;'>"
             "\u2139\ufe0f 建议搭配「长按启用键时启用」模式使用，松手即停配合惯性滑行，"
             "可以更好地模拟触控板或触摸屏的滑动手感。"
             "启用模式可在「高级设置 → 配置工作模式与应用过滤」中切换。</span>"

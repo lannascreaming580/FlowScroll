@@ -106,7 +106,7 @@ def get_dialog_stylesheet() -> str:
     font_family = _get_font_family()
     return f"""
         QDialog {{ background-color: {COLOR_BG_DARK}; font-family: {font_family}; }}
-        QLabel {{ font-size: 13px; color: {COLOR_TEXT_SECONDARY}; }}
+        QLabel {{ font-size: 14px; color: {COLOR_TEXT_SECONDARY}; }}
         QPushButton {{
             background-color: {COLOR_BG_CARD};
             border: 1px solid {COLOR_BORDER};
@@ -114,7 +114,7 @@ def get_dialog_stylesheet() -> str:
             padding: 8px 16px;
             color: {COLOR_TEXT_PRIMARY};
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
         }}
         QPushButton:hover {{ background-color: {COLOR_BORDER}; border-color: {COLOR_BORDER_HOVER}; }}
         QPushButton:pressed {{ background-color: {COLOR_BG_DARK}; }}
@@ -193,7 +193,7 @@ def get_help_dialog_style() -> str:
     """获取帮助对话框样式"""
     return f"""
         QMessageBox {{ background-color: {COLOR_BG_DARK}; }}
-        QLabel {{ color: {COLOR_TEXT_PRIMARY}; font-size: 13px; line-height: 1.5; }}
+        QLabel {{ color: {COLOR_TEXT_PRIMARY}; font-size: 14px; line-height: 1.5; }}
         QPushButton {{ background-color: {COLOR_ACCENT}; color: white; border-radius: 6px; padding: 6px 16px; font-weight: bold; }}
         QPushButton:hover {{ background-color: {COLOR_ACCENT_HOVER}; }}
     """

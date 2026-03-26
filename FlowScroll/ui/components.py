@@ -6,7 +6,11 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QSlider,
 )
-from FlowScroll.core.hotkeys import hotkey_from_key_event, hotkey_to_display, normalize_hotkey_string
+from FlowScroll.core.hotkeys import (
+    hotkey_from_key_event,
+    hotkey_to_display,
+    normalize_hotkey_string,
+)
 
 
 class HotkeyEdit(QKeySequenceEdit):
@@ -20,6 +24,15 @@ class HotkeyEdit(QKeySequenceEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._mouse_hotkey = ""
+        self._placeholder_set = False
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self._placeholder_set:
+            editor = self.findChild(QLineEdit)
+            if editor is not None:
+                editor.setPlaceholderText("点击输入快捷键")
+                self._placeholder_set = True
 
     def set_hotkey(self, hotkey):
         self._mouse_hotkey = normalize_hotkey_string(hotkey)
@@ -89,7 +102,9 @@ class UpwardComboBox(QComboBox):
         return super().eventFilter(watched, event)
 
     def _move_popup_up(self):
-        popup_height = self._popup_window.height() or self._popup_window.sizeHint().height()
+        popup_height = (
+            self._popup_window.height() or self._popup_window.sizeHint().height()
+        )
         combo_bottom = self.mapToGlobal(self.rect().bottomLeft())
         self._popup_window.move(
             combo_bottom.x(), combo_bottom.y() - popup_height - self.height()

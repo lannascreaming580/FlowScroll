@@ -246,20 +246,19 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(16)
 
-        layout.addWidget(QLabel("按下要设置的快捷键："))
-
         hotkey_edit = HotkeyEdit()
         hotkey_edit.set_hotkey(cfg.horizontal_hotkey)
         hotkey_edit.setMaximumSequenceLength(1)
         layout.addWidget(hotkey_edit)
 
         btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
 
         btn_clear = QPushButton("清除")
         btn_clear.setObjectName("BtnDanger")
         btn_clear.clicked.connect(lambda: hotkey_edit.clear())
         btn_layout.addWidget(btn_clear)
+
+        btn_layout.addStretch()
 
         btn_cancel = QPushButton("取消")
         btn_cancel.clicked.connect(dialog.reject)
