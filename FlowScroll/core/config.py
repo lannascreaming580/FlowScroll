@@ -11,6 +11,7 @@ BUILTIN_PRESETS = {
         "enable_horizontal": False,
         "minimize_to_tray": True,
         "horizontal_hotkey": "",
+        "activation_mode": 0,
         "filter_mode": 0,
         "filter_list": [],
         "disable_fullscreen": True,
@@ -24,6 +25,7 @@ BUILTIN_PRESETS = {
         "enable_horizontal": False,
         "minimize_to_tray": True,
         "horizontal_hotkey": "",
+        "activation_mode": 0,
         "filter_mode": 0,
         "filter_list": [],
         "disable_fullscreen": True,
@@ -37,6 +39,7 @@ BUILTIN_PRESETS = {
         "enable_horizontal": True,
         "minimize_to_tray": True,
         "horizontal_hotkey": "",
+        "activation_mode": 0,
         "filter_mode": 0,
         "filter_list": [],
         "disable_fullscreen": True,
@@ -50,6 +53,7 @@ BUILTIN_PRESETS = {
         "enable_horizontal": False,
         "minimize_to_tray": True,
         "horizontal_hotkey": "",
+        "activation_mode": 0,
         "filter_mode": 0,
         "filter_list": [],
         "disable_fullscreen": True,
@@ -85,6 +89,7 @@ class GlobalConfig:
         self.reverse_y = False
         self.reverse_x = False
 
+        self.activation_mode = 0  # 0=点击中键启用/关闭, 1=长按中键时启用
         self.filter_mode = 0
         self.filter_list = []
         self.disable_fullscreen = True
@@ -122,6 +127,7 @@ class GlobalConfig:
             "filter_list": self.filter_list,
             "disable_fullscreen": self.disable_fullscreen,
             "disable_desktop": self.disable_desktop,
+            "activation_mode": self.activation_mode,
             "webdav_url": self.webdav_url,
             "webdav_username": self.webdav_username,
             "webdav_password": self.webdav_password,
@@ -144,6 +150,7 @@ class GlobalConfig:
         self.filter_list = data.get("filter_list", [])
         self.disable_fullscreen = data.get("disable_fullscreen", True)
         self.disable_desktop = data.get("disable_desktop", True)
+        self.activation_mode = data.get("activation_mode", 0)
         self.webdav_url = data.get("webdav_url", "")
         self.webdav_username = data.get("webdav_username", "")
         self.webdav_password = data.get("webdav_password", "")

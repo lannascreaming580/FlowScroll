@@ -92,7 +92,7 @@ class WorkModeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("工作模式")
-        self.setFixedSize(480, 480)
+        self.setFixedSize(480, 490)
 
         self.setStyleSheet("""
             QDialog { background-color: #0F172A; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
@@ -110,13 +110,57 @@ class WorkModeDialog(QDialog):
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(16)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(10)
 
+        # --- 启用模式 ---
         card, card_layout = create_card()
+        card_layout.setContentsMargins(16, 16, 16, 16)
+        card_layout.setSpacing(8)
 
-        # --- Filter mode radios ---
         card_layout.addWidget(
+            QLabel("<span style='font-weight: 600; color: #E2E8F0;'>启用模式</span>")
+        )
+
+        self.activation_group = QButtonGroup(self)
+
+        self.radio_click_toggle = QRadioButton("点击中键启用/关闭")
+        self.radio_click_toggle.setCursor(Qt.PointingHandCursor)
+        self.activation_group.addButton(self.radio_click_toggle, 0)
+        card_layout.addWidget(self.radio_click_toggle)
+
+        desc_click = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "点击鼠标中键后启用平滑滚动，再次点击中键则关闭。</span>"
+        )
+        desc_click.setWordWrap(True)
+        desc_click.setContentsMargins(24, 0, 0, 0)
+        card_layout.addWidget(desc_click)
+
+        self.radio_hold = QRadioButton("长按中键时启用")
+        self.radio_hold.setCursor(Qt.PointingHandCursor)
+        self.activation_group.addButton(self.radio_hold, 1)
+        card_layout.addWidget(self.radio_hold)
+
+        desc_hold = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "长按鼠标中键时可全向移动，松开中键时自动关闭功能。</span>"
+        )
+        desc_hold.setWordWrap(True)
+        desc_hold.setContentsMargins(24, 0, 0, 0)
+        card_layout.addWidget(desc_hold)
+
+        self.radio_click_toggle.setChecked(cfg.activation_mode == 0)
+        self.radio_hold.setChecked(cfg.activation_mode == 1)
+
+        layout.addWidget(card)
+
+        # --- 应用过滤模式 ---
+        card2, card_layout2 = create_card()
+        card_layout2.setContentsMargins(16, 16, 16, 16)
+        card_layout2.setSpacing(8)
+
+        card_layout2.addWidget(
             QLabel(
                 "<span style='font-weight: 600; color: #E2E8F0;'>应用过滤模式</span>"
             )
@@ -127,38 +171,46 @@ class WorkModeDialog(QDialog):
         self.radio_global = QRadioButton("全局模式")
         self.radio_global.setCursor(Qt.PointingHandCursor)
         self.button_group.addButton(self.radio_global, 0)
-        card_layout.addWidget(self.radio_global)
+        card_layout2.addWidget(self.radio_global)
+
+        desc_global = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "此模式下，滚动功能将在所有应用中启用。"
+            "如果设置了全屏模式禁用，则全屏模式下不会启用。</span>"
+        )
+        desc_global.setWordWrap(True)
+        desc_global.setContentsMargins(24, 0, 0, 0)
+        card_layout2.addWidget(desc_global)
 
         self.radio_blacklist = QRadioButton("黑名单模式")
         self.radio_blacklist.setCursor(Qt.PointingHandCursor)
         self.button_group.addButton(self.radio_blacklist, 1)
-        card_layout.addWidget(self.radio_blacklist)
+        card_layout2.addWidget(self.radio_blacklist)
+
+        desc_blacklist = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "每行输入一个应用名称关键词，不区分大小写。<br>"
+            "黑名单模式下可以禁止在指定应用中使用滚动功能，例如输入 <b>potplayer</b> 即可在该播放器中禁用滚动。</span>"
+        )
+        desc_blacklist.setWordWrap(True)
+        desc_blacklist.setContentsMargins(24, 0, 0, 0)
+        card_layout2.addWidget(desc_blacklist)
 
         self.radio_global.setChecked(cfg.filter_mode == 0)
         self.radio_blacklist.setChecked(cfg.filter_mode == 1)
 
-        card_layout.addWidget(create_h_line())
-
-        # --- Blacklist text ---
-        hint_lbl = QLabel(
-            "<span style='font-weight: 600; color: #E2E8F0;'>黑名单</span>"
-            "<br><span style='color: #94A3B8; font-size: 12px;'>"
-            "每行输入一个应用名称关键词，不区分大小写。<br>"
-            "例如输入 <b>potplayer</b> 即可在该播放器中禁用滚动。</span>"
-        )
-        hint_lbl.setWordWrap(True)
-        card_layout.addWidget(hint_lbl)
+        card_layout2.addWidget(create_h_line())
 
         self.text_edit = QTextEdit()
         self.text_edit.setPlainText("\n".join(cfg.filter_list))
-        self.text_edit.setMinimumHeight(120)
+        self.text_edit.setMinimumHeight(80)
         self.text_edit.setEnabled(cfg.filter_mode != 0)
         self.button_group.idClicked.connect(
             lambda mid: self.text_edit.setEnabled(mid != 0)
         )
-        card_layout.addWidget(self.text_edit)
+        card_layout2.addWidget(self.text_edit)
 
-        layout.addWidget(card)
+        layout.addWidget(card2)
 
         # --- Save button ---
         btn_layout = QHBoxLayout()
@@ -171,6 +223,7 @@ class WorkModeDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def save_and_close(self):
+        cfg.activation_mode = self.activation_group.checkedId()
         cfg.filter_mode = self.button_group.checkedId()
         cfg.filter_list = [
             line.strip()

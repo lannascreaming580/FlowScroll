@@ -102,6 +102,7 @@ class GlobalInputListener:
 
         kwargs = {"on_click": self.on_click}
         import platform
+
         if platform.system() == "Windows":
             kwargs["win32_event_filter"] = self.win32_event_filter
 
@@ -115,35 +116,49 @@ class GlobalInputListener:
             if self.is_app_allowed_callback():
                 # OS 级拦截中键，防止浏览器等软件原生滚动 UI 弹出
                 x, y = mouse.Controller().position
-                pressed = (msg == 0x0207 or msg == 0x0209)
+                pressed = msg == 0x0207 or msg == 0x0209
                 self.on_click(x, y, mouse.Button.middle, pressed)
-                
+
                 # 必须调用 suppress_event 才能在系统全局级别真正屏蔽该事件，
                 # 光返回 False 只是让 pynput 内部忽略它。
-                if self.mouse_listener and hasattr(self.mouse_listener, 'suppress_event'):
+                if self.mouse_listener and hasattr(
+                    self.mouse_listener, "suppress_event"
+                ):
                     self.mouse_listener.suppress_event()
                 return False
         return True
 
     def on_click(self, x, y, button, pressed):
         if button == mouse.Button.middle:
-            if pressed:
-                if not self.is_app_allowed_callback():
-                    return
-                
-                # 防抖：防止鼠标硬件问题或底层 API 触发多次连击
-                current_time = time.time()
-                if current_time - self.last_middle_click_time < 0.15:
-                    return
-                self.last_middle_click_time = current_time
+            if not self.is_app_allowed_callback():
+                return
 
-                cfg.active = not cfg.active
-                if cfg.active:
+            if cfg.activation_mode == 1:
+                # 长按模式：按下启用，松开关闭
+                if pressed:
+                    cfg.active = True
                     cfg.origin_pos = (x, y)
                     self.bridge.show_overlay.emit()
                 else:
-                    self.bridge.hide_overlay.emit()
+                    if cfg.active:
+                        cfg.active = False
+                        self.bridge.hide_overlay.emit()
+            else:
+                # 点击切换模式 (原有行为)
+                if pressed:
+                    # 防抖：防止鼠标硬件问题或底层 API 触发多次连击
+                    current_time = time.time()
+                    if current_time - self.last_middle_click_time < 0.15:
+                        return
+                    self.last_middle_click_time = current_time
+
+                    cfg.active = not cfg.active
+                    if cfg.active:
+                        cfg.origin_pos = (x, y)
+                        self.bridge.show_overlay.emit()
+                    else:
+                        self.bridge.hide_overlay.emit()
         elif pressed and (button == mouse.Button.left or button == mouse.Button.right):
-            if cfg.active:
+            if cfg.active and cfg.activation_mode == 0:
                 cfg.active = False
                 self.bridge.hide_overlay.emit()
