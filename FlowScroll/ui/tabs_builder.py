@@ -224,6 +224,37 @@ def build_advanced_tab(main_window):
 
     adv_layout.addWidget(row_horizontal)
     adv_layout.addWidget(create_h_line())
+
+    # --- 惯性滚动 Row ---
+    row_inertia = QWidget()
+    row_inertia_layout = QHBoxLayout(row_inertia)
+    row_inertia_layout.setContentsMargins(0, 0, 0, 0)
+    row_inertia_layout.setSpacing(12)
+
+    chk_inertia = QCheckBox("启用惯性滚动")
+    chk_inertia.setChecked(cfg.enable_inertia)
+    chk_inertia.toggled.connect(lambda v: setattr(cfg, "enable_inertia", v))
+    chk_inertia.setFocusPolicy(Qt.NoFocus)
+    chk_inertia.setCursor(Qt.PointingHandCursor)
+    main_window.ui_widgets["enable_inertia"] = chk_inertia
+    row_inertia_layout.addWidget(chk_inertia)
+    row_inertia_layout.addStretch()
+
+    btn_inertia_gear = QPushButton()
+    btn_inertia_gear.setObjectName("BtnIcon")
+    btn_inertia_gear.setCursor(Qt.PointingHandCursor)
+    gear_path2 = resource_path(os.path.join("FlowScroll", "resources", "ic_gear.svg"))
+    if os.path.exists(gear_path2):
+        btn_inertia_gear.setIcon(QIcon(gear_path2))
+        btn_inertia_gear.setIconSize(QSize(16, 16))
+    else:
+        btn_inertia_gear.setText("\u2699")
+    btn_inertia_gear.clicked.connect(main_window.open_inertia_settings_dialog)
+    row_inertia_layout.addWidget(btn_inertia_gear)
+
+    adv_layout.addWidget(row_inertia)
+    adv_layout.addWidget(create_h_line())
+
     main_window.ui_widgets["minimize_to_tray"] = add_toggle_row(
         adv_layout,
         "minimize_to_tray",

@@ -436,6 +436,15 @@ class MainWindow(QMainWindow):
         if dialog.exec() == QDialog.Accepted:
             self.save_presets_to_file()
 
+    def open_inertia_settings_dialog(self):
+        from FlowScroll.ui.dialogs import InertiaSettingsDialog
+
+        dialog = InertiaSettingsDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            if hasattr(self, "scroller") and self.scroller:
+                self.scroller.update_friction()
+            self.save_presets_to_file()
+
     def toggle_autorun(self, checked):
         if not self.autostart.set_autorun(checked):
             self.sender().blockSignals(True)
@@ -509,6 +518,10 @@ class MainWindow(QMainWindow):
         self.ui_widgets["overlay_size"].setValue(cfg.overlay_size)
         self.ui_widgets["enable_horizontal"].setChecked(cfg.enable_horizontal)
         self.ui_widgets["minimize_to_tray"].setChecked(cfg.minimize_to_tray)
+        self.ui_widgets["enable_inertia"].setChecked(cfg.enable_inertia)
+
+        if hasattr(self, "scroller") and self.scroller:
+            self.scroller.update_friction()
 
         self.update_hotkey_label()
         self.save_presets_to_file()
@@ -533,8 +546,14 @@ class MainWindow(QMainWindow):
             pass
 
         try:
+            self.scroller = ScrollEngine(self.bridge, mouse_controller)
+            self.scroller.start()
+        except Exception:
+            pass
+
+        try:
             self.input_listener = GlobalInputListener(
-                self.bridge, is_current_app_allowed
+                self.bridge, is_current_app_allowed, self.scroller
             )
             self.input_listener.start()
         except Exception:
@@ -544,9 +563,3 @@ class MainWindow(QMainWindow):
                 "权限不足",
                 "无法启动鼠标拦截服务。\n\n这通常是因为缺少底层挂钩权限。",
             )
-
-        try:
-            self.scroller = ScrollEngine(self.bridge, mouse_controller)
-            self.scroller.start()
-        except Exception:
-            pass

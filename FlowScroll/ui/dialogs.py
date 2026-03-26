@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QTextEdit,
     QPushButton,
+    QSlider,
 )
 from PySide6.QtCore import Qt
 from FlowScroll.core.config import cfg
@@ -236,7 +237,7 @@ class WorkModeDialog(QDialog):
 
         hint = QLabel(
             "<span style='color: #CBD5E1; font-size: 12px;'>设置启用键 ↓</span>"
-         )
+        )
         hint.setWordWrap(True)
         wrapper.addWidget(hint)
 
@@ -267,4 +268,174 @@ class WorkModeDialog(QDialog):
             for line in self.text_edit.toPlainText().split("\n")
             if line.strip()
         ]
+        self.accept()
+
+
+class InertiaSettingsDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("惯性滚动设置")
+        self.setFixedSize(460, 420)
+
+        self.setStyleSheet("""
+            QDialog { background-color: #0F172A; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+            QLabel { font-size: 13px; color: #E2E8F0; }
+            QPushButton {
+                background-color: #1E293B;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 8px 16px;
+                color: #F8FAFC;
+                font-weight: 600;
+                font-size: 13px;
+            }
+            QPushButton:hover { background-color: #334155; border-color: #475569; }
+            QPushButton#BtnPrimary { background-color: #3B82F6; color: #FFFFFF; border: none; padding: 10px 24px; font-size: 14px; border-radius: 10px; }
+            QPushButton#BtnPrimary:hover { background-color: #2563EB; }
+            QPushButton#BtnPrimary:pressed { background-color: #1D4ED8; }
+            QFrame#Card { background-color: #1E293B; border-radius: 16px; border: 1px solid #334155; }
+            QFrame#Separator { background-color: #334155; max-height: 1px; }
+            QSlider::groove:horizontal { border-radius: 4px; height: 8px; background: #334155; }
+            QSlider::sub-page:horizontal { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2563EB, stop:1 #3B82F6); border-radius: 4px; }
+            QSlider::handle:horizontal { background: #FFFFFF; border: 2px solid #3B82F6; width: 18px; height: 18px; margin: -5px 0; border-radius: 9px; }
+            QSlider::handle:horizontal:hover { background: #EFF6FF; border: 3px solid #2563EB; }
+        """)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        # --- 使用建议 ---
+        hint_label = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "\u2139\ufe0f 建议搭配「长按启用键时启用」模式使用，松手即停配合惯性滑行，"
+            "可以更好地模拟触控板或触摸屏的滑动手感。"
+            "启用模式可在「高级设置 → 配置工作模式与应用过滤」中切换。</span>"
+        )
+        hint_label.setWordWrap(True)
+        hint_label.setTextFormat(Qt.RichText)
+        layout.addWidget(hint_label)
+
+        # --- 阻尼/摩擦力 ---
+        card1, card_layout1 = create_card()
+
+        friction_header = QHBoxLayout()
+        friction_title = QLabel(
+            "<span style='font-weight: 600; color: #E2E8F0;'>阻尼 / 摩擦力</span>"
+        )
+        self.friction_value_label = QLabel()
+        self.friction_value_label.setStyleSheet(
+            "color: #3B82F6; font-weight: 700; font-size: 13px;"
+        )
+        friction_header.addWidget(friction_title)
+        friction_header.addStretch()
+        friction_header.addWidget(self.friction_value_label)
+        card_layout1.addLayout(friction_header)
+
+        friction_desc = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "控制惯性滑行的持续时间。数值越大，滑得越远越久。</span>"
+        )
+        friction_desc.setWordWrap(True)
+        card_layout1.addWidget(friction_desc)
+
+        friction_slider_row = QHBoxLayout()
+        lbl_compact = QLabel("紧凑")
+        lbl_compact.setStyleSheet("color: #94A3B8; font-size: 12px;")
+        lbl_loose = QLabel("松弛")
+        lbl_loose.setStyleSheet("color: #94A3B8; font-size: 12px;")
+
+        self.friction_slider = QSlider(Qt.Horizontal)
+        self.friction_slider.setRange(100, 3000)
+        self.friction_slider.setValue(int(cfg.inertia_friction_ms))
+        self.friction_slider.setSingleStep(50)
+        self.friction_slider.setFixedHeight(24)
+        self.friction_slider.setCursor(Qt.PointingHandCursor)
+        self.friction_slider.valueChanged.connect(self._on_friction_changed)
+
+        friction_slider_row.addWidget(lbl_compact)
+        friction_slider_row.addWidget(self.friction_slider, 1)
+        friction_slider_row.addWidget(lbl_loose)
+        card_layout1.addLayout(friction_slider_row)
+
+        layout.addWidget(card1)
+
+        # --- 触发阈值 ---
+        card2, card_layout2 = create_card()
+
+        threshold_header = QHBoxLayout()
+        threshold_title = QLabel(
+            "<span style='font-weight: 600; color: #E2E8F0;'>触发阈值</span>"
+        )
+        self.threshold_value_label = QLabel()
+        self.threshold_value_label.setStyleSheet(
+            "color: #3B82F6; font-weight: 700; font-size: 13px;"
+        )
+        threshold_header.addWidget(threshold_title)
+        threshold_header.addStretch()
+        threshold_header.addWidget(self.threshold_value_label)
+        card_layout2.addLayout(threshold_header)
+
+        threshold_desc = QLabel(
+            "<span style='color: #94A3B8; font-size: 12px;'>"
+            "鼠标移动速度超过此值时，松开中键才会触发惯性滑行。"
+            "低于此值则直接停止，避免轻微拖动也产生惯性。</span>"
+        )
+        threshold_desc.setWordWrap(True)
+        card_layout2.addWidget(threshold_desc)
+
+        threshold_slider_row = QHBoxLayout()
+        lbl_slow = QLabel("低")
+        lbl_slow.setStyleSheet("color: #94A3B8; font-size: 12px;")
+        lbl_fast = QLabel("高")
+        lbl_fast.setStyleSheet("color: #94A3B8; font-size: 12px;")
+
+        self.threshold_slider = QSlider(Qt.Horizontal)
+        self.threshold_slider.setRange(30, 300)
+        self.threshold_slider.setValue(int(cfg.inertia_threshold))
+        self.threshold_slider.setSingleStep(5)
+        self.threshold_slider.setFixedHeight(24)
+        self.threshold_slider.setCursor(Qt.PointingHandCursor)
+        self.threshold_slider.valueChanged.connect(self._on_threshold_changed)
+
+        threshold_slider_row.addWidget(lbl_slow)
+        threshold_slider_row.addWidget(self.threshold_slider, 1)
+        threshold_slider_row.addWidget(lbl_fast)
+        card_layout2.addLayout(threshold_slider_row)
+
+        layout.addWidget(card2)
+
+        layout.addStretch()
+
+        # --- Save button ---
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        btn_save = QPushButton("确定")
+        btn_save.setObjectName("BtnPrimary")
+        btn_save.setCursor(Qt.PointingHandCursor)
+        btn_save.clicked.connect(self.save_and_close)
+        btn_layout.addWidget(btn_save)
+        layout.addLayout(btn_layout)
+
+        # 初始化显示
+        self._update_friction_label()
+        self._update_threshold_label()
+
+    def _update_friction_label(self):
+        ms = self.friction_slider.value()
+        self.friction_value_label.setText(f"{ms} ms")
+
+    def _update_threshold_label(self):
+        val = self.threshold_slider.value()
+        self.threshold_value_label.setText(f"{val} px/s")
+
+    def _on_friction_changed(self, _value):
+        self._update_friction_label()
+
+    def _on_threshold_changed(self, _value):
+        self._update_threshold_label()
+
+    def save_and_close(self):
+        cfg.inertia_friction_ms = self.friction_slider.value()
+        cfg.inertia_threshold = float(self.threshold_slider.value())
         self.accept()
