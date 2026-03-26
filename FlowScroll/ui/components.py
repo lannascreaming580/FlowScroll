@@ -1,9 +1,36 @@
-from PySide6.QtWidgets import QKeySequenceEdit, QComboBox, QSlider, QDoubleSpinBox
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QEvent, Qt
+from PySide6.QtWidgets import (
+    QComboBox,
+    QDoubleSpinBox,
+    QKeySequenceEdit,
+    QLineEdit,
+    QSlider,
+)
+from FlowScroll.core.hotkeys import hotkey_from_key_event, hotkey_to_display, normalize_hotkey_string
 
 
 class HotkeyEdit(QKeySequenceEdit):
-    """自定义快捷键输入框 (防连招且支持退格清空)"""
+    """自定义快捷键输入框，支持用 Backspace/Delete 清空。"""
+
+    MOUSE_HOTKEYS = {
+        Qt.BackButton: "mouse_x1",
+        Qt.ForwardButton: "mouse_x2",
+    }
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._mouse_hotkey = ""
+
+    def set_hotkey(self, hotkey):
+        self._mouse_hotkey = normalize_hotkey_string(hotkey)
+        self._set_display_text(hotkey_to_display(self._mouse_hotkey))
+
+    def hotkey_text(self):
+        return self._mouse_hotkey
+
+    def clear(self):
+        self._mouse_hotkey = ""
+        super().clear()
 
     def keyPressEvent(self, event):
         if (
@@ -12,31 +39,72 @@ class HotkeyEdit(QKeySequenceEdit):
         ):
             self.clear()
         else:
+            hotkey = hotkey_from_key_event(event)
+            if hotkey:
+                self._mouse_hotkey = hotkey
+                self._set_display_text(hotkey_to_display(hotkey))
+                event.accept()
+                return
             super().keyPressEvent(event)
+
+    def mousePressEvent(self, event):
+        mouse_hotkey = self.MOUSE_HOTKEYS.get(event.button())
+        if mouse_hotkey:
+            self._mouse_hotkey = mouse_hotkey
+            self._set_display_text(hotkey_to_display(mouse_hotkey))
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def _set_display_text(self, text):
+        editor = self.findChild(QLineEdit)
+        if editor is not None:
+            editor.setText(text)
 
 
 class UpwardComboBox(QComboBox):
-    """下拉框向上弹出"""
+    """向上弹出下拉列表，避免先向下再重定位的闪烁。"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._popup_window = self.view().window()
+        self._popup_window.installEventFilter(self)
+        self._popup_visible = False
 
     def showPopup(self):
+        self._popup_visible = True
         super().showPopup()
-        QTimer.singleShot(1, self._move_popup_up)
+
+    def hidePopup(self):
+        self._popup_visible = False
+        super().hidePopup()
+
+    def eventFilter(self, watched, event):
+        if (
+            watched is self._popup_window
+            and self._popup_visible
+            and event.type() == QEvent.Show
+        ):
+            self._move_popup_up()
+        return super().eventFilter(watched, event)
 
     def _move_popup_up(self):
-        popup = self.view().window()
+        popup_height = self._popup_window.height() or self._popup_window.sizeHint().height()
         combo_bottom = self.mapToGlobal(self.rect().bottomLeft())
-        popup.move(combo_bottom.x(), combo_bottom.y() - popup.height() - self.height())
+        self._popup_window.move(
+            combo_bottom.x(), combo_bottom.y() - popup_height - self.height()
+        )
 
 
 class NoWheelSlider(QSlider):
-    """禁止滚轮调整的滑块"""
+    """禁用滚轮调整的滑块。"""
 
     def wheelEvent(self, event):
         event.ignore()
 
 
 class NoWheelSpinBox(QDoubleSpinBox):
-    """禁止滚轮调整的数值框"""
+    """禁用滚轮调整的数值框。"""
 
     def wheelEvent(self, event):
         event.ignore()

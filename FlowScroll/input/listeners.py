@@ -1,6 +1,7 @@
 import time
 from pynput import mouse, keyboard
 from FlowScroll.core.config import cfg
+from FlowScroll.core.hotkeys import normalize_hotkey_part, normalize_hotkey_string
 from FlowScroll.services.logging_service import logger
 
 
@@ -11,14 +12,6 @@ class KeyboardManager:
         )
         self.current_keys = set()
         self.bridge_callback = bridge_callback
-        self.qt_to_pynput = {
-            "pgup": "page_up",
-            "pgdown": "page_down",
-            "ins": "insert",
-            "del": "delete",
-            "esc": "esc",
-            "return": "enter",
-        }
 
     def start(self):
         self.listener.start()
@@ -42,7 +35,7 @@ class KeyboardManager:
             elif "cmd" in key_name:
                 key_name = "meta"
 
-            self.current_keys.add(key_name)
+            self.current_keys.add(normalize_hotkey_part(key_name))
             self.check_hotkey()
 
     def on_release(self, key):
@@ -57,18 +50,16 @@ class KeyboardManager:
             elif "cmd" in key_name:
                 key_name = "meta"
 
+            key_name = normalize_hotkey_part(key_name)
             if key_name in self.current_keys:
                 self.current_keys.remove(key_name)
 
     def check_hotkey(self):
-        if not cfg.horizontal_hotkey:
+        hotkey = normalize_hotkey_string(cfg.horizontal_hotkey)
+        if not hotkey or hotkey.startswith("mouse_"):
             return
 
-        qt_keys = cfg.horizontal_hotkey.lower().split("+")
-        target_keys = set()
-        for k in qt_keys:
-            k = self.qt_to_pynput.get(k, k)
-            target_keys.add(k)
+        target_keys = set(hotkey.split("+"))
 
         if not target_keys:
             return
@@ -90,6 +81,14 @@ class GlobalInputListener:
         self.mouse_listener = None
         self.key_manager = None
         self.last_middle_click_time = 0.0
+        self.mouse_hotkey_map = {
+            "mouse_x1": mouse.Button.x1,
+            "mouse_x2": mouse.Button.x2,
+        }
+
+    def _is_horizontal_hotkey_button(self, button):
+        hotkey = normalize_hotkey_string(cfg.horizontal_hotkey)
+        return self.mouse_hotkey_map.get(hotkey) == button
 
     def start(self):
         try:
@@ -129,6 +128,10 @@ class GlobalInputListener:
         return True
 
     def on_click(self, x, y, button, pressed):
+        if pressed and self._is_horizontal_hotkey_button(button):
+            self.bridge.toggle_horizontal.emit()
+            return
+
         if button == mouse.Button.middle:
             if not self.is_app_allowed_callback():
                 return

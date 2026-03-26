@@ -252,17 +252,7 @@ def build_advanced_tab(main_window):
         lambda v: setattr(cfg, "disable_fullscreen", v),
         style_sheet="color: #FCA5A5;",
     )
-
     adv_layout.addWidget(create_h_line())
-
-    tab2_layout.addWidget(adv_card)
-
-    # Section: 反转模式 (Reverse Mode)
-    lbl_reverse_mode = QLabel("反转模式 Reverse Mode")
-    lbl_reverse_mode.setObjectName("SectionTitle")
-    tab2_layout.addWidget(lbl_reverse_mode)
-
-    reverse_mode_card, reverse_mode_layout = create_card()
 
     btn_reverse_mode = QPushButton("配置滚轮方向反转")
     btn_reverse_mode.setObjectName("BtnAdv")
@@ -272,16 +262,7 @@ def build_advanced_tab(main_window):
         btn_reverse_mode.setIcon(QIcon(move_path))
         btn_reverse_mode.setIconSize(QSize(18, 18))
     btn_reverse_mode.clicked.connect(main_window.open_reverse_mode_dialog)
-    reverse_mode_layout.addWidget(btn_reverse_mode)
-
-    tab2_layout.addWidget(reverse_mode_card)
-
-    # Section: 工作模式 (Work Mode)
-    lbl_work_mode = QLabel("工作模式 Work Mode")
-    lbl_work_mode.setObjectName("SectionTitle")
-    tab2_layout.addWidget(lbl_work_mode)
-
-    work_mode_card, work_mode_layout = create_card()
+    adv_layout.addWidget(btn_reverse_mode)
 
     btn_work_mode = QPushButton("配置工作模式与应用过滤")
     btn_work_mode.setObjectName("BtnAdv")
@@ -291,18 +272,9 @@ def build_advanced_tab(main_window):
         btn_work_mode.setIcon(QIcon(gear_path))
         btn_work_mode.setIconSize(QSize(18, 18))
     btn_work_mode.clicked.connect(main_window.open_work_mode_dialog)
-    work_mode_layout.addWidget(btn_work_mode)
+    adv_layout.addWidget(btn_work_mode)
 
-    tab2_layout.addWidget(work_mode_card)
-
-    # Section: 云同步 (Cloud Sync)
-    lbl_cloud = QLabel("云同步 Cloud Sync")
-    lbl_cloud.setObjectName("SectionTitle")
-    tab2_layout.addWidget(lbl_cloud)
-
-    cloud_card, cloud_layout = create_card()
-
-    btn_webdav = QPushButton(" WebDAV 云同步配置")
+    btn_webdav = QPushButton("WebDAV 云同步配置")
     btn_webdav.setObjectName("BtnAdv")
     btn_webdav.setCursor(Qt.PointingHandCursor)
     cloud_path = resource_path(os.path.join("FlowScroll", "resources", "ic_cloud.svg"))
@@ -310,9 +282,9 @@ def build_advanced_tab(main_window):
         btn_webdav.setIcon(QIcon(cloud_path))
         btn_webdav.setIconSize(QSize(18, 18))
     btn_webdav.clicked.connect(main_window.open_webdav_settings)
-    cloud_layout.addWidget(btn_webdav)
+    adv_layout.addWidget(btn_webdav)
 
-    tab2_layout.addWidget(cloud_card)
+    tab2_layout.addWidget(adv_card)
 
     # Add stretch to make content fit height
     tab2_layout.addStretch()

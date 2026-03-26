@@ -24,7 +24,6 @@ from PySide6.QtGui import (
     QIcon,
     QCursor,
     QAction,
-    QKeySequence,
 )
 
 from FlowScroll.platform import system_platform
@@ -42,6 +41,7 @@ from FlowScroll.services.autostart import AutoStartManager
 from FlowScroll.ui.overlay import ResizableOverlay
 from FlowScroll.ui.webdav_dialog import WebDAVSyncDialog
 from FlowScroll.ui.components import HotkeyEdit
+from FlowScroll.core.hotkeys import hotkey_to_display
 from FlowScroll.ui.utils import resource_path
 from FlowScroll.ui.styles import get_main_stylesheet
 from FlowScroll.services.window_monitor import WindowMonitor
@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
 
     def update_hotkey_label(self):
         if cfg.horizontal_hotkey:
-            self.lbl_hotkey.setText(cfg.horizontal_hotkey)
+            self.lbl_hotkey.setText(hotkey_to_display(cfg.horizontal_hotkey))
         else:
             self.lbl_hotkey.setText("未设置快捷键")
 
@@ -337,7 +337,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(QLabel("按下要设置的快捷键："))
 
         hotkey_edit = HotkeyEdit()
-        hotkey_edit.setKeySequence(QKeySequence(cfg.horizontal_hotkey))
+        hotkey_edit.set_hotkey(cfg.horizontal_hotkey)
         hotkey_edit.setMaximumSequenceLength(1)
         layout.addWidget(hotkey_edit)
 
@@ -361,7 +361,7 @@ class MainWindow(QMainWindow):
         layout.addLayout(btn_layout)
 
         if dialog.exec() == QDialog.Accepted:
-            cfg.horizontal_hotkey = hotkey_edit.keySequence().toString()
+            cfg.horizontal_hotkey = hotkey_edit.hotkey_text()
             self.update_hotkey_label()
             self.save_presets_to_file()
 
@@ -443,6 +443,16 @@ class MainWindow(QMainWindow):
             self.sender().blockSignals(False)
             QMessageBox.warning(self, "设置失败", "权限不足或路径错误。")
 
+    def _confirm_preset_action(self, title, text):
+        reply = QMessageBox.question(
+            self,
+            title,
+            text,
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        return reply == QMessageBox.Yes
+
     def save_new_preset(self):
         suggested = self.current_preset_name
         if suggested in BUILTIN_PRESETS:
@@ -456,6 +466,11 @@ class MainWindow(QMainWindow):
                     self, "提示", "内置预设名称不可使用，请换一个名称。"
                 )
                 return
+            if text in self.presets and not self._confirm_preset_action(
+                "确认覆盖",
+                f"预设“{text}”已存在，是否用当前配置覆盖它？",
+            ):
+                return
             self.presets[text] = cfg.to_dict()
             self.current_preset_name = text
             self.save_presets_to_file()
@@ -467,6 +482,11 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "提示", "内置预设无法删除。")
             return
         if name not in self.presets:
+            return
+        if not self._confirm_preset_action(
+            "确认删除",
+            f"确定要删除预设“{name}”吗？此操作不可撤销。",
+        ):
             return
         del self.presets[name]
         self.current_preset_name = DEFAULT_PRESET_NAME
