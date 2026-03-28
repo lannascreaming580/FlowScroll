@@ -323,7 +323,7 @@ class TestKeyboardManagerHotkeyNormalization:
         return FakeKeyCode, FakeKey
 
     def test_ctrl_letter_control_char_normalized(self, monkeypatch):
-        pytest.importorskip("pynput")
+        pytest.importorskip("pynput", exc_type=ImportError)
         from FlowScroll.input import listeners as listeners_module
 
         FakeKeyCode, _ = self._patch_keyboard_types(monkeypatch, listeners_module)
@@ -334,7 +334,7 @@ class TestKeyboardManagerHotkeyNormalization:
         assert km._normalize_key_name("k") == "k"
 
     def test_ctrl_letter_with_vk_fallback_is_matchable(self, monkeypatch):
-        pytest.importorskip("pynput")
+        pytest.importorskip("pynput", exc_type=ImportError)
         from FlowScroll.input import listeners as listeners_module
 
         FakeKeyCode, FakeKey = self._patch_keyboard_types(monkeypatch, listeners_module)
@@ -460,15 +460,15 @@ class TestKeyboardManagerHotkeyNormalizationPureMock:
 
 class TestLockKeyAliasNormalization:
     def test_capslock_alias_normalized(self):
-        pytest.importorskip("PySide6")
+        pytest.importorskip("PySide6", exc_type=ImportError)
         from FlowScroll.core.hotkeys import normalize_hotkey_string
 
         assert normalize_hotkey_string("CapsLock") == "caps_lock"
         assert normalize_hotkey_string("caps_lock") == "caps_lock"
 
     def test_capslock_alias_matches_listener_current_keys(self):
-        pytest.importorskip("PySide6")
-        pytest.importorskip("pynput")
+        pytest.importorskip("PySide6", exc_type=ImportError)
+        pytest.importorskip("pynput", exc_type=ImportError)
         from FlowScroll.input.listeners import GlobalInputListener
 
         listener = GlobalInputListener.__new__(GlobalInputListener)

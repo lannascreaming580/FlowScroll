@@ -1,7 +1,6 @@
 import re
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence
 
 
 MODIFIER_ORDER = ("ctrl", "alt", "shift", "meta")
@@ -126,6 +125,8 @@ def hotkey_to_display(value):
 
 
 def hotkey_from_key_event(event):
+    from PySide6.QtGui import QKeySequence
+
     modifiers = []
     keyboard_modifiers = event.modifiers()
     if keyboard_modifiers & Qt.ControlModifier:
