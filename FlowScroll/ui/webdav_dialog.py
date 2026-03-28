@@ -1,32 +1,34 @@
 import base64
 import json
 import urllib.request
+
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
-    QVBoxLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
     QMessageBox,
+    QPushButton,
+    QVBoxLayout,
 )
-from PySide6.QtCore import Qt
 
-from FlowScroll.core.config import cfg, CONFIG_FILE
+from FlowScroll.constants import (
+    WEBDAV_DIALOG_DEFAULT_HEIGHT,
+    WEBDAV_DIALOG_DEFAULT_WIDTH,
+    WEBDAV_DIALOG_MIN_HEIGHT,
+    WEBDAV_DIALOG_MIN_WIDTH,
+)
+from FlowScroll.core.config import CONFIG_FILE, cfg
+from FlowScroll.i18n import tr
 from FlowScroll.services.credential_service import credential_service
 from FlowScroll.ui.styles import get_webdav_dialog_style
-from FlowScroll.constants import (
-    WEBDAV_DIALOG_DEFAULT_WIDTH,
-    WEBDAV_DIALOG_DEFAULT_HEIGHT,
-    WEBDAV_DIALOG_MIN_WIDTH,
-    WEBDAV_DIALOG_MIN_HEIGHT,
-)
 
 
 class WebDAVSyncDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("WebDAV 云同步配置")
+        self.setWindowTitle(tr("webdav.title"))
         self.setMinimumSize(WEBDAV_DIALOG_MIN_WIDTH, WEBDAV_DIALOG_MIN_HEIGHT)
         self.setSizeGripEnabled(True)
 
@@ -36,45 +38,39 @@ class WebDAVSyncDialog(QDialog):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(16)
 
-        # URL
-        layout.addWidget(QLabel("WebDAV 链接 (例如: https://dav.jianguoyun.com/dav/)"))
+        layout.addWidget(QLabel(tr("webdav.url_label")))
         self.edit_url = QLineEdit(cfg.webdav_url)
         self.edit_url.setPlaceholderText("https://...")
         layout.addWidget(self.edit_url)
 
-        # Username
-        layout.addWidget(QLabel("用户名 / 账号"))
+        layout.addWidget(QLabel(tr("webdav.username_label")))
         self.edit_user = QLineEdit(cfg.webdav_username)
         layout.addWidget(self.edit_user)
 
-        # Password — 从安全存储读取
-        layout.addWidget(QLabel("密码 / 应用授权码"))
+        layout.addWidget(QLabel(tr("webdav.password_label")))
         saved_password = credential_service.load_password()
         self.edit_pwd = QLineEdit(saved_password)
         self.edit_pwd.setEchoMode(QLineEdit.Password)
         layout.addWidget(self.edit_pwd)
 
         if not credential_service.is_keyring_available:
-            hint = QLabel(
-                "⚠ 系统钥匙串不可用，密码仅在本次会话内存中保存，不会写入磁盘。"
-            )
+            hint = QLabel(tr("webdav.keyring_unavailable_hint"))
             hint.setStyleSheet("color: #F59E0B; font-size: 11px;")
             hint.setWordWrap(True)
             layout.addWidget(hint)
 
-        # Buttons
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(12)
 
-        btn_save = QPushButton("保存配置")
+        btn_save = QPushButton(tr("webdav.save"))
         btn_save.clicked.connect(self.save_config)
 
-        btn_upload = QPushButton("上传配置")
+        btn_upload = QPushButton(tr("webdav.upload"))
         btn_upload.setObjectName("BtnPrimary")
         btn_upload.setCursor(Qt.PointingHandCursor)
         btn_upload.clicked.connect(self.upload_config)
 
-        btn_download = QPushButton("下载配置")
+        btn_download = QPushButton(tr("webdav.download"))
         btn_download.setObjectName("BtnSuccess")
         btn_download.setCursor(Qt.PointingHandCursor)
         btn_download.clicked.connect(self.download_config)
@@ -99,28 +95,29 @@ class WebDAVSyncDialog(QDialog):
         user = self.edit_user.text().strip()
         pwd = self.edit_pwd.text().strip()
         auth_str = f"{user}:{pwd}"
-        return f"Basic {base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')}"
+        encoded = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
+        return f"Basic {encoded}"
 
     def save_config(self):
         cfg.webdav_url = self.edit_url.text().strip()
         cfg.webdav_username = self.edit_user.text().strip()
         password = self.edit_pwd.text().strip()
 
-        # 密码通过安全存储管理
         if password:
             saved = credential_service.save_password(password)
             if not saved:
                 QMessageBox.warning(
                     self,
-                    "注意",
-                    "系统钥匙串不可用，密码仅保存在本次会话内存中。\n"
-                    "下次启动后需要重新输入。",
+                    tr("webdav.notice_title"),
+                    tr("webdav.password_session_only"),
                 )
         else:
             credential_service.delete_password()
 
         QMessageBox.information(
-            self, "提示", "WebDAV 配置已暂存，请记得在主界面保存预设以持久化。"
+            self,
+            tr("webdav.notice_title"),
+            tr("webdav.saved_notice"),
         )
         self.accept()
 
@@ -129,7 +126,6 @@ class WebDAVSyncDialog(QDialog):
         auth = self.get_auth_header()
 
         try:
-            # 只上传参数配置，不上传 WebDAV 凭据
             sync_data = cfg.to_dict_for_sync()
             data = json.dumps(sync_data, ensure_ascii=False, indent=4).encode("utf-8")
 
@@ -140,14 +136,22 @@ class WebDAVSyncDialog(QDialog):
             with urllib.request.urlopen(req) as response:
                 if response.status in (200, 201, 204):
                     QMessageBox.information(
-                        self, "成功", "配置已成功上传至 WebDAV 云端！"
+                        self,
+                        tr("webdav.success_title"),
+                        tr("webdav.upload_success"),
                     )
                 else:
                     QMessageBox.warning(
-                        self, "失败", f"上传失败，状态码: {response.status}"
+                        self,
+                        tr("webdav.failed_title"),
+                        tr("webdav.upload_failed_status", status=response.status),
                     )
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"连接 WebDAV 失败:\\n{str(e)}")
+            QMessageBox.critical(
+                self,
+                tr("webdav.error_title"),
+                tr("webdav.connect_failed", error=str(e)),
+            )
 
     def download_config(self):
         url = self.get_full_url()
@@ -160,25 +164,25 @@ class WebDAVSyncDialog(QDialog):
             with urllib.request.urlopen(req) as response:
                 remote_data = json.loads(response.read().decode("utf-8"))
 
-            # 保留本地的 WebDAV 连接信息
             local_webdav_url = cfg.webdav_url
             local_webdav_username = cfg.webdav_username
 
-            # 从云端加载参数配置
             cfg.from_dict(remote_data)
 
-            # 恢复本地 WebDAV 连接信息
             cfg.webdav_url = local_webdav_url
             cfg.webdav_username = local_webdav_username
 
-            # 保存到本地文件 (不含密码)
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(cfg.to_dict(), f, ensure_ascii=False, indent=4)
 
             QMessageBox.information(
-                self, "成功", "配置已从云端下载成功！重启程序或重新加载预设生效。"
+                self,
+                tr("webdav.success_title"),
+                tr("webdav.download_success"),
             )
         except Exception as e:
             QMessageBox.critical(
-                self, "错误", f"下载配置失败，可能云端尚无配置文件:\\n{str(e)}"
+                self,
+                tr("webdav.error_title"),
+                tr("webdav.download_failed", error=str(e)),
             )

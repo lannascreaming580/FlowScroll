@@ -298,6 +298,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"FlowScroll v{self.current_version}")
         self.header_subtitle.setText(tr("main.subtitle"))
         self.btn_language.setText(tr("main.language.button"))
+        self.tray_manager.retranslate_ui()
         self._build_language_menu()
         self._rebuild_tabs()
 
@@ -368,13 +369,6 @@ class MainWindow(QMainWindow):
         )
         msg.setText(help_text)
         msg.exec()
-
-    def toggle_advanced_settings(self, checked):
-        self.adv_card.setVisible(checked)
-        if checked:
-            self.adv_btn_toggle.setText("鈻?楂樼骇璁剧疆 Advanced Settings")
-        else:
-            self.adv_btn_toggle.setText("鈻?楂樼骇璁剧疆 Advanced Settings")
 
     def on_toggle_horizontal_hotkey(self):
         new_state = not cfg.enable_horizontal
