@@ -6,6 +6,10 @@
 import json
 import os
 import tempfile
+import importlib
+import sys
+import types
+import pytest
 
 
 # ---------------------------------------------------------------------------
@@ -287,3 +291,185 @@ class TestConstants:
 
         assert isinstance(CONFIG_VERSION, int)
         assert CONFIG_VERSION > 0
+
+
+# ---------------------------------------------------------------------------
+# KeyboardManager: Ctrl+字母 归一化
+# ---------------------------------------------------------------------------
+
+
+class TestKeyboardManagerHotkeyNormalization:
+    def _patch_keyboard_types(self, monkeypatch, listeners_module):
+        class DummyListener:
+            def __init__(self, on_press=None, on_release=None):
+                self.on_press = on_press
+                self.on_release = on_release
+
+            def start(self):
+                return None
+
+        class FakeKeyCode:
+            def __init__(self, char=None, vk=None):
+                self.char = char
+                self.vk = vk
+
+        class FakeKey:
+            def __init__(self, name):
+                self.name = name
+
+        monkeypatch.setattr(listeners_module.keyboard, "Listener", DummyListener)
+        monkeypatch.setattr(listeners_module.keyboard, "KeyCode", FakeKeyCode)
+        monkeypatch.setattr(listeners_module.keyboard, "Key", FakeKey)
+        return FakeKeyCode, FakeKey
+
+    def test_ctrl_letter_control_char_normalized(self, monkeypatch):
+        pytest.importorskip("pynput")
+        from FlowScroll.input import listeners as listeners_module
+
+        FakeKeyCode, _ = self._patch_keyboard_types(monkeypatch, listeners_module)
+        km = listeners_module.KeyboardManager.__new__(listeners_module.KeyboardManager)
+
+        # Ctrl+K 在某些平台会上报为 \x0b
+        assert km._get_key_name(FakeKeyCode(char="\x0b")) == "k"
+        assert km._normalize_key_name("k") == "k"
+
+    def test_ctrl_letter_with_vk_fallback_is_matchable(self, monkeypatch):
+        pytest.importorskip("pynput")
+        from FlowScroll.input import listeners as listeners_module
+
+        FakeKeyCode, FakeKey = self._patch_keyboard_types(monkeypatch, listeners_module)
+
+        pressed_events = []
+        km = listeners_module.KeyboardManager(
+            lambda key, keys: pressed_events.append((key, set(keys))),
+            lambda _key, _keys: None,
+        )
+
+        km.on_press(FakeKey("ctrl_l"))
+        km.on_press(FakeKeyCode(vk=75))  # 'K'
+
+        assert pressed_events[-1][0] == "k"
+        assert {"ctrl", "k"}.issubset(pressed_events[-1][1])
+
+
+class TestKeyboardManagerHotkeyNormalizationPureMock:
+    def _import_listeners_with_fake_pynput(self, monkeypatch):
+        fake_pynput = types.ModuleType("pynput")
+
+        fake_keyboard = types.ModuleType("pynput.keyboard")
+
+        class FakeListener:
+            def __init__(self, on_press=None, on_release=None):
+                self.on_press = on_press
+                self.on_release = on_release
+
+            def start(self):
+                return None
+
+        class FakeKeyCode:
+            def __init__(self, char=None, vk=None):
+                self.char = char
+                self.vk = vk
+
+        class FakeKey:
+            def __init__(self, name):
+                self.name = name
+
+        fake_keyboard.Listener = FakeListener
+        fake_keyboard.KeyCode = FakeKeyCode
+        fake_keyboard.Key = FakeKey
+
+        fake_mouse = types.ModuleType("pynput.mouse")
+
+        class FakeButton:
+            middle = object()
+            x1 = object()
+            x2 = object()
+
+        class FakeController:
+            position = (0, 0)
+
+        class FakeMouseListener:
+            def __init__(self, **_kwargs):
+                pass
+
+            def start(self):
+                return None
+
+        fake_mouse.Button = FakeButton
+        fake_mouse.Controller = FakeController
+        fake_mouse.Listener = FakeMouseListener
+
+        fake_pynput.keyboard = fake_keyboard
+        fake_pynput.mouse = fake_mouse
+
+        fake_hotkeys = types.ModuleType("FlowScroll.core.hotkeys")
+
+        def _normalize_hotkey_part(value):
+            if not value:
+                return ""
+            return str(value).strip().lower()
+
+        def _normalize_hotkey_string(value):
+            if not value:
+                return ""
+            return "+".join(
+                p for p in (_normalize_hotkey_part(x) for x in str(value).split("+")) if p
+            )
+
+        fake_hotkeys.normalize_hotkey_part = _normalize_hotkey_part
+        fake_hotkeys.normalize_hotkey_string = _normalize_hotkey_string
+
+        monkeypatch.setitem(sys.modules, "pynput", fake_pynput)
+        monkeypatch.setitem(sys.modules, "pynput.keyboard", fake_keyboard)
+        monkeypatch.setitem(sys.modules, "pynput.mouse", fake_mouse)
+        monkeypatch.setitem(sys.modules, "FlowScroll.core.hotkeys", fake_hotkeys)
+        monkeypatch.delitem(sys.modules, "FlowScroll.input.listeners", raising=False)
+
+        module = importlib.import_module("FlowScroll.input.listeners")
+        # Ensure this injected module does not leak into other tests.
+        monkeypatch.setitem(sys.modules, "FlowScroll.input.listeners", module)
+        return module, FakeKeyCode, FakeKey
+
+    def test_ctrl_letter_control_char_normalized_without_pynput(self, monkeypatch):
+        listeners_module, FakeKeyCode, _ = self._import_listeners_with_fake_pynput(
+            monkeypatch
+        )
+        km = listeners_module.KeyboardManager.__new__(listeners_module.KeyboardManager)
+
+        assert km._get_key_name(FakeKeyCode(char="\x0b")) == "k"
+        assert km._normalize_key_name("k") == "k"
+
+    def test_ctrl_letter_vk_fallback_without_pynput(self, monkeypatch):
+        listeners_module, FakeKeyCode, FakeKey = (
+            self._import_listeners_with_fake_pynput(monkeypatch)
+        )
+        pressed_events = []
+
+        km = listeners_module.KeyboardManager(
+            lambda key, keys: pressed_events.append((key, set(keys))),
+            lambda _key, _keys: None,
+        )
+
+        km.on_press(FakeKey("ctrl_l"))
+        km.on_press(FakeKeyCode(vk=75))
+
+        assert pressed_events[-1][0] == "k"
+        assert {"ctrl", "k"}.issubset(pressed_events[-1][1])
+
+
+class TestLockKeyAliasNormalization:
+    def test_capslock_alias_normalized(self):
+        pytest.importorskip("PySide6")
+        from FlowScroll.core.hotkeys import normalize_hotkey_string
+
+        assert normalize_hotkey_string("CapsLock") == "caps_lock"
+        assert normalize_hotkey_string("caps_lock") == "caps_lock"
+
+    def test_capslock_alias_matches_listener_current_keys(self):
+        pytest.importorskip("PySide6")
+        pytest.importorskip("pynput")
+        from FlowScroll.input.listeners import GlobalInputListener
+
+        listener = GlobalInputListener.__new__(GlobalInputListener)
+        assert listener._is_keyboard_hotkey_active("capslock", {"caps_lock"}) is True

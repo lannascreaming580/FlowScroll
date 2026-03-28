@@ -1,13 +1,13 @@
 [project]
 name = "FlowScroll"
-version = "1.4.3"
+version = "1.4.4"
 description = "全局无级滚动工具——把浏览器里的中键自动滚动，带到整个系统"
 authors = [
     { name = "某不科学的高数" }
 ]
 urls = { Repository = "https://github.com/CyrilPeng/FlowScroll" }
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Win32 (MS Windows)",

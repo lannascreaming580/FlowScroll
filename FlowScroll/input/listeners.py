@@ -22,7 +22,21 @@ class KeyboardManager:
 
     def _get_key_name(self, key):
         if isinstance(key, keyboard.KeyCode):
-            return key.char.lower() if key.char else None
+            if key.char:
+                # Ctrl+letter on some platforms can produce control chars
+                # (e.g. Ctrl+K -> '\x0b'). Convert them back to letters.
+                if len(key.char) == 1 and 1 <= ord(key.char) <= 26:
+                    return chr(ord(key.char) + 96)
+                return key.char.lower()
+            vk = getattr(key, "vk", None)
+            if isinstance(vk, int):
+                # A-Z
+                if 65 <= vk <= 90:
+                    return chr(vk + 32)
+                # 0-9
+                if 48 <= vk <= 57:
+                    return chr(vk)
+            return None
         if isinstance(key, keyboard.Key):
             return key.name
         return None
