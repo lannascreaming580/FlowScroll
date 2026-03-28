@@ -11,13 +11,11 @@ Bring browser-style auto-scroll to your whole desktop.
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
+[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://github.com/CyrilPeng/FlowScroll/releases) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) ![Branch](https://img.shields.io/badge/Branch-main-60a5fa)
 
 </div>
 
-`main` is the development branch and may be ahead of the latest stable release.
-For stable builds, downloads, and release notes, use GitHub Releases.
-App filter rules match the foreground process name first. If the current environment cannot identify a process name, FlowScroll temporarily falls back to window-title matching for that foreground app.
+> The default branch in this repository is the development branch `main`; for stable builds, installers, and official release notes, use GitHub Releases.
 
 ---
 

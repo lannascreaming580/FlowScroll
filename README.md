@@ -13,12 +13,11 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]() ![Stable](https://img.shields.io/badge/Stable-v1.6.3-22c55e)
+[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://github.com/CyrilPeng/FlowScroll/releases) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) ![Branch](https://img.shields.io/badge/Branch-main-60a5fa)
 
 </div>
 
-> `main` 分支用于持续开发，可能会领先于最新稳定版。
-如果你想获取稳定版本、下载包和正式更新记录，请以 GitHub Release 为准。
+> 当前仓库默认开发分支为 `main`；稳定版本、安装包和正式更新记录请以 GitHub Release 为准。
 
 ---
 
