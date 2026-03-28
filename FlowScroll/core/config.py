@@ -103,6 +103,7 @@ class RuntimeState:
     current_process_name: str = ""
     process_name_status: str = "unknown"
     process_name_available: bool = False
+    last_match_target: str = ""
     current_window_class: str = ""
     is_fullscreen: bool = False
 

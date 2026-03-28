@@ -167,6 +167,30 @@ class TestPresetManager:
         finally:
             os.unlink(path)
 
+    def test_load_failure_clears_stale_presets(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        fd, path = tempfile.mkstemp(suffix=".json")
+        os.close(fd)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("{ invalid json")
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+            pm.presets = {"StalePreset": {"sensitivity": 3.0}}
+            pm.current_preset_name = "StalePreset"
+
+            pm.load_from_file()
+
+            assert pm.presets == {}
+            assert pm.current_preset_name == config_module.DEFAULT_PRESET_NAME
+        finally:
+            os.unlink(path)
+
     def test_password_not_saved_to_file(self, monkeypatch):
         import FlowScroll.core.config as config_module
         import FlowScroll.ui.preset_manager as pm_module
@@ -304,6 +328,38 @@ class TestRules:
         runtime.is_fullscreen = False
 
         assert is_current_app_allowed() is False
+
+    def test_filter_unknown_status_uses_last_known_target(self):
+        from FlowScroll.core.config import cfg, runtime
+        from FlowScroll.core.rules import is_current_app_allowed
+
+        cfg.filter_mode = 2
+        cfg.filter_blacklist = []
+        cfg.filter_whitelist = ["chrome"]
+        runtime.current_process_name = ""
+        runtime.current_window_name = ""
+        runtime.process_name_status = "unknown"
+        runtime.process_name_available = False
+        runtime.last_match_target = "chrome"
+        runtime.is_fullscreen = False
+
+        assert is_current_app_allowed() is True
+
+    def test_filter_unknown_status_does_not_block_before_first_snapshot(self):
+        from FlowScroll.core.config import cfg, runtime
+        from FlowScroll.core.rules import is_current_app_allowed
+
+        cfg.filter_mode = 2
+        cfg.filter_blacklist = []
+        cfg.filter_whitelist = ["chrome"]
+        runtime.current_process_name = ""
+        runtime.current_window_name = ""
+        runtime.process_name_status = "unknown"
+        runtime.process_name_available = False
+        runtime.last_match_target = ""
+        runtime.is_fullscreen = False
+
+        assert is_current_app_allowed() is True
 
     def test_legacy_filter_list_migration(self):
         from FlowScroll.core.config import GlobalConfig
