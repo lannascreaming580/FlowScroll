@@ -13,17 +13,12 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
+[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]() ![Stable](https://img.shields.io/badge/Stable-v1.6.3-22c55e)
 
 </div>
 
-> 当前稳定版：`v1.6.3`
->
-> `main` 分支可领先于稳定版；稳定下载、安装包与更新记录请以 GitHub Release 为准。
-
-`main` 分支用于持续开发，可能会领先于最新稳定版。
+> `main` 分支用于持续开发，可能会领先于最新稳定版。
 如果你想获取稳定版本、下载包和正式更新记录，请以 GitHub Release 为准。
-应用过滤规则优先按前台进程名匹配。如果当前环境无法识别进程名，FlowScroll 会仅对当前前台应用临时回退为窗口标题匹配。
 
 ---
 

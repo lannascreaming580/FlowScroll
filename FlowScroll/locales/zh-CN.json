@@ -91,7 +91,7 @@
   "dialog.filter.whitelist_title": "白名单关键词",
   "dialog.filter.import": "导入",
   "dialog.filter.clear": "清空",
-  "dialog.filter.hint": "支持从文本导入关键词；每行一条，建议使用稳定的进程名片段（如 chrome、code、potplayer）。",
+  "dialog.filter.hint": "支持从文本导入关键词；每行一条，建议使用稳定的进程名片段（如 chrome、code、potplayer）。如果当前环境无法识别进程名，FlowScroll 会仅对当前前台应用临时回退为窗口标题匹配。",
   "dialog.filter.save": "保存设置",
   "dialog.filter.clear_confirm_title": "确认清空",
   "dialog.filter.clear_confirm_body": "确定要清空{name}关键词吗？此操作不可撤销。",

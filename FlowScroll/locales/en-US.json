@@ -93,7 +93,7 @@
   "dialog.filter.whitelist_title": "Whitelist Keywords",
   "dialog.filter.import": "Import",
   "dialog.filter.clear": "Clear",
-  "dialog.filter.hint": "Import from text file; one keyword per line. Use stable process-name fragments such as chrome, code, or potplayer.",
+  "dialog.filter.hint": "Import from text file; one keyword per line. Use stable process-name fragments such as chrome, code, or potplayer. If the current environment cannot identify the process name, FlowScroll temporarily falls back to window-title matching for the current foreground app only.",
   "dialog.filter.save": "Save",
   "dialog.filter.clear_confirm_title": "Confirm Clear",
   "dialog.filter.clear_confirm_body": "Clear all {name} keywords?",
