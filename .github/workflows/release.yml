@@ -89,7 +89,7 @@ jobs:
       - name: 构建 Windows 版本
         if: matrix.os == 'windows-latest'
         run: |
-          uv run python -m nuitka --assume-yes-for-downloads --standalone --onefile --enable-plugin=pyside6 --include-qt-plugins=platforms,styles,imageformats --windows-console-mode=disable --windows-icon-from-ico=logo.ico --include-data-files=logo.ico=logo.ico --include-data-files=main.py=main.py --include-data-dir=FlowScroll/resources=FlowScroll/resources --output-dir=build_out -o FlowScroll_Win_${{ github.ref_name }}.exe main.py
+          uv run python -m nuitka --assume-yes-for-downloads --standalone --onefile --enable-plugin=pyside6 --include-qt-plugins=platforms,styles,imageformats --windows-console-mode=disable --windows-icon-from-ico=logo.ico --include-data-files=logo.ico=logo.ico --include-data-files=main.py=main.py --include-data-dir=FlowScroll/resources=FlowScroll/resources --include-data-dir=FlowScroll/locales=FlowScroll/locales --output-dir=build_out -o FlowScroll_Win_${{ github.ref_name }}.exe main.py
 
       - name: 构建 macOS 版本
         if: matrix.os == 'macos-latest'
@@ -100,7 +100,7 @@ jobs:
             ICON_ARG=""
           fi
 
-          uv run python -m nuitka --assume-yes-for-downloads --standalone --macos-create-app-bundle --enable-plugin=pyside6 $ICON_ARG --include-data-files=main.py=main.py --macos-app-name="FlowScroll" --output-dir=build_out main.py
+          uv run python -m nuitka --assume-yes-for-downloads --standalone --macos-create-app-bundle --enable-plugin=pyside6 $ICON_ARG --include-data-files=main.py=main.py --include-data-dir=FlowScroll/locales=FlowScroll/locales --macos-app-name="FlowScroll" --output-dir=build_out main.py
 
           if [ -d "build_out/main.app" ]; then
             mv build_out/main.app "build_out/FlowScroll.app"
@@ -125,7 +125,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfuse2t64 binutils libxcb-cursor0 imagemagick
 
-          uv run python -m nuitka --assume-yes-for-downloads --standalone --enable-plugin=pyside6 --output-dir=build_out -o FlowScroll_Linux main.py
+          uv run python -m nuitka --assume-yes-for-downloads --standalone --enable-plugin=pyside6 --include-data-dir=FlowScroll/locales=FlowScroll/locales --output-dir=build_out -o FlowScroll_Linux main.py
 
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps

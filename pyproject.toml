@@ -39,6 +39,9 @@ dev = [
 [tool.setuptools]
 packages = ["FlowScroll"]
 
+[tool.setuptools.package-data]
+FlowScroll = ["locales/*.json", "resources/*.*"]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"

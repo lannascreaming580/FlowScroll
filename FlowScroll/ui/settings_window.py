@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pynput import mouse
 
 from PySide6.QtWidgets import (
@@ -17,16 +17,19 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import (
+    QAction,
     QIcon,
     QCursor,
 )
+from PySide6.QtWidgets import QMenu
 
 from FlowScroll.platform import system_platform
-from FlowScroll.core.config import cfg, BUILTIN_PRESETS, DEFAULT_PRESET_NAME
+from FlowScroll.core.config import STATE_LOCK, cfg, BUILTIN_PRESETS, DEFAULT_PRESET_NAME
 from FlowScroll.core.engine import ScrollEngine
 from FlowScroll.core.rules import is_current_app_allowed
 from FlowScroll.input.listeners import GlobalInputListener
 from FlowScroll.services.autostart import AutoStartManager
+from FlowScroll.i18n import set_ui_language, tr
 
 from FlowScroll.ui.overlay import ResizableOverlay
 from FlowScroll.ui.webdav_dialog import WebDAVSyncDialog
@@ -70,11 +73,12 @@ class MainWindow(QMainWindow):
         self.preset_manager = PresetManager()
 
         self.ui_widgets = {}
+        self.ui_text_widgets = {}
         self.github_url = "https://github.com/CyrilPeng/FlowScroll"
 
         self.preset_manager.load_from_file()
 
-        # 确保窗口图标已经设置好再初始化系统托盘
+        # 纭繚绐楀彛鍥炬爣宸茬粡璁剧疆濂藉啀鍒濆鍖栫郴缁熸墭鐩?
         if self.windowIcon().isNull() and os.path.exists(resource_path(icon_name)):
             self.setWindowIcon(QIcon(resource_path(icon_name)))
 
@@ -176,31 +180,38 @@ class MainWindow(QMainWindow):
         title_layout = QVBoxLayout()
         title_layout.setSpacing(2)
 
-        header_title = QLabel("FlowScroll")
-        header_title.setObjectName("HeaderTitle")
+        self.header_title = QLabel("FlowScroll")
+        self.header_title.setObjectName("HeaderTitle")
 
-        header_subtitle = QLabel("全局平滑滚动，按下中键，即刻享受")
-        header_subtitle.setObjectName("HeaderSubtitle")
+        self.header_subtitle = QLabel(tr("main.subtitle"))
+        self.header_subtitle.setObjectName("HeaderSubtitle")
 
-        title_layout.addWidget(header_title)
-        title_layout.addWidget(header_subtitle)
+        title_layout.addWidget(self.header_title)
+        title_layout.addWidget(self.header_subtitle)
 
         header_layout.addWidget(logo_label)
         header_layout.addSpacing(12)
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
 
-        btn_help = QPushButton("?")
-        btn_help.setObjectName("BtnIcon")
-        btn_help.setCursor(Qt.PointingHandCursor)
-        btn_help.setStyleSheet(get_help_button_style())
-        btn_help.clicked.connect(self.show_help_dialog)
-        header_layout.addWidget(btn_help)
+        self.btn_language = QPushButton(tr("main.language.button"))
+        self.btn_language.setObjectName("BtnIcon")
+        self.btn_language.setCursor(Qt.PointingHandCursor)
+        self.btn_language.setStyleSheet(get_help_button_style())
+        self.btn_language.clicked.connect(self.show_language_menu)
+        header_layout.addWidget(self.btn_language)
+
+        self.btn_help = QPushButton("?")
+        self.btn_help.setObjectName("BtnIcon")
+        self.btn_help.setCursor(Qt.PointingHandCursor)
+        self.btn_help.setStyleSheet(get_help_button_style())
+        self.btn_help.clicked.connect(self.show_help_dialog)
+        header_layout.addWidget(self.btn_help)
 
         content_layout.addLayout(header_layout)
         content_layout.addSpacing(10)
 
-        # 引入外部帮助函数和Tab构建器
+        # 寮曞叆澶栭儴甯姪鍑芥暟鍜孴ab鏋勫缓鍣?
         from FlowScroll.ui.tabs_builder import build_parameter_tab, build_advanced_tab
 
         # --- Tab Widget ---
@@ -209,10 +220,10 @@ class MainWindow(QMainWindow):
 
         # Build tabs
         tab1_widget = build_parameter_tab(self)
-        self.tab_widget.addTab(tab1_widget, "参数调校")
+        self.tab_widget.addTab(tab1_widget, tr("main.tab.parameters"))
 
         tab2_widget = build_advanced_tab(self)
-        self.tab_widget.addTab(tab2_widget, "高级设置")
+        self.tab_widget.addTab(tab2_widget, tr("main.tab.advanced"))
 
         self.tab_widget.currentChanged.connect(self.update_tab_height)
         self.update_tab_height(0)
@@ -222,6 +233,7 @@ class MainWindow(QMainWindow):
 
         scroll_area.setWidget(content_widget)
         main_layout.addWidget(scroll_area)
+        self._build_language_menu()
 
     def update_tab_height(self, index):
         for i in range(self.tab_widget.count()):
@@ -232,15 +244,72 @@ class MainWindow(QMainWindow):
                 widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.tab_widget.adjustSize()
 
+    def _build_language_menu(self):
+        self.language_menu = QMenu(self)
+        self.action_lang_auto = QAction(tr("main.language.auto"), self)
+        self.action_lang_zh = QAction(tr("main.language.zh"), self)
+        self.action_lang_en = QAction(tr("main.language.en"), self)
+        for action in (self.action_lang_auto, self.action_lang_zh, self.action_lang_en):
+            action.setCheckable(True)
+            self.language_menu.addAction(action)
+
+        self.action_lang_auto.triggered.connect(lambda: self._apply_language("auto"))
+        self.action_lang_zh.triggered.connect(lambda: self._apply_language("zh-CN"))
+        self.action_lang_en.triggered.connect(lambda: self._apply_language("en-US"))
+        self._sync_language_menu_checks()
+
+    def _sync_language_menu_checks(self):
+        with STATE_LOCK:
+            configured = getattr(cfg, "ui_language", "auto")
+        self.action_lang_auto.setChecked(configured == "auto")
+        self.action_lang_zh.setChecked(configured == "zh-CN")
+        self.action_lang_en.setChecked(configured == "en-US")
+
+    def show_language_menu(self):
+        if not hasattr(self, "language_menu"):
+            self._build_language_menu()
+        self._sync_language_menu_checks()
+        self.language_menu.exec(self.btn_language.mapToGlobal(self.btn_language.rect().bottomLeft()))
+
+    def _apply_language(self, language_code: str):
+        set_ui_language(language_code)
+        self.save_presets_to_file()
+        self.retranslate_ui()
+
+    def _rebuild_tabs(self):
+        from FlowScroll.ui.tabs_builder import build_parameter_tab, build_advanced_tab
+
+        index = self.tab_widget.currentIndex()
+        self.tab_widget.blockSignals(True)
+        self.tab_widget.clear()
+        self.ui_widgets = {}
+        self.ui_text_widgets = {}
+
+        tab1_widget = build_parameter_tab(self)
+        self.tab_widget.addTab(tab1_widget, tr("main.tab.parameters"))
+        tab2_widget = build_advanced_tab(self)
+        self.tab_widget.addTab(tab2_widget, tr("main.tab.advanced"))
+        self.tab_widget.setCurrentIndex(max(0, min(index, self.tab_widget.count() - 1)))
+        self.tab_widget.blockSignals(False)
+        self.update_tab_height(self.tab_widget.currentIndex())
+        self.sync_ui_from_config()
+
+    def retranslate_ui(self):
+        self.setWindowTitle(f"FlowScroll v{self.current_version}")
+        self.header_subtitle.setText(tr("main.subtitle"))
+        self.btn_language.setText(tr("main.language.button"))
+        self._build_language_menu()
+        self._rebuild_tabs()
+
     def update_hotkey_label(self):
         if cfg.horizontal_hotkey:
             self.lbl_hotkey.setText(hotkey_to_display(cfg.horizontal_hotkey))
         else:
-            self.lbl_hotkey.setText("未设置快捷键")
+            self.lbl_hotkey.setText(tr("main.hotkey.not_set"))
 
     def open_hotkey_dialog(self):
         dialog = QDialog(self)
-        dialog.setWindowTitle("设置快捷键")
+        dialog.setWindowTitle(tr("main.hotkey_dialog.title"))
         dialog.setMinimumWidth(300)
 
         layout = QVBoxLayout(dialog)
@@ -254,18 +323,18 @@ class MainWindow(QMainWindow):
 
         btn_layout = QHBoxLayout()
 
-        btn_clear = QPushButton("清除")
+        btn_clear = QPushButton(tr("main.hotkey_dialog.clear"))
         btn_clear.setObjectName("BtnDanger")
         btn_clear.clicked.connect(lambda: hotkey_edit.clear())
         btn_layout.addWidget(btn_clear)
 
         btn_layout.addStretch()
 
-        btn_cancel = QPushButton("取消")
+        btn_cancel = QPushButton(tr("main.hotkey_dialog.cancel"))
         btn_cancel.clicked.connect(dialog.reject)
         btn_layout.addWidget(btn_cancel)
 
-        btn_ok = QPushButton("确定")
+        btn_ok = QPushButton(tr("main.hotkey_dialog.ok"))
         btn_ok.setObjectName("BtnPrimary")
         btn_ok.clicked.connect(dialog.accept)
         btn_layout.addWidget(btn_ok)
@@ -279,7 +348,7 @@ class MainWindow(QMainWindow):
 
     def show_help_dialog(self):
         msg = QMessageBox(self)
-        msg.setWindowTitle("功能说明与帮助")
+        msg.setWindowTitle(tr("main.help.title"))
         msg.setIcon(QMessageBox.NoIcon)
         msg.setStyleSheet(get_help_dialog_style())
         msg.setTextFormat(Qt.RichText)
@@ -290,17 +359,12 @@ class MainWindow(QMainWindow):
             )
             return f"<img src='{path}' width='14' height='14'>"
 
-        help_text = (
-            f"<b>{img('ic_speed.svg')} 加速度曲线</b><br>"
-            "决定了滑动距离与最终滚动速度之间的非线性关系。数值越大，用力滑动时页面飞出得越远。网页浏览推荐 1.0~1.5，长代码/文档推荐 2.0+。<br><br>"
-            f"<b>{img('ic_power.svg')} 基础速度倍率</b><br>"
-            "全局滚动的乘数放大器。如果你觉得整体滚动太慢或太快，调整此项。<br><br>"
-            f"<b>{img('ic_target.svg')} 中心死区缓冲</b><br>"
-            "按下中键后，鼠标需要移动多少像素才会触发滚动。建议保留极小值以防止误触和手抖。<br><br>"
-            f"<b>{img('ic_move.svg')} 横向穿梭模式</b><br>"
-            "<b>未开启时：</b>提供绝对纯净的单轴（Y轴）物理惯性滚动。屏蔽一切水平手抖，保证日常刷网页、看代码时的极致专注与平稳。<br>"
-            "<b>开启时：</b>解锁全向（X轴+Y轴）平移引擎！鼠标中键将化身为触控板，支持 360° 自由滑动。非常适合浏览超宽 Excel 表格、无限画板或视频剪辑的时间轴。<br>"
-            f"{img('ic_lightbulb.svg')} <b>进阶用法：</b>在高级设置中绑定一个快捷键（如 <code>⬆️</code>），平时默认关闭以保证纯净度。当需要横向看表格时，<b>按 ⬆️ 后再按下鼠标中键</b>，即可瞬间解锁全向穿梭！<br><br>"
+        help_text = tr(
+            "main.help.html",
+            speed_icon=img("ic_speed.svg"),
+            power_icon=img("ic_power.svg"),
+            target_icon=img("ic_target.svg"),
+            move_icon=img("ic_move.svg"),
         )
         msg.setText(help_text)
         msg.exec()
@@ -308,17 +372,17 @@ class MainWindow(QMainWindow):
     def toggle_advanced_settings(self, checked):
         self.adv_card.setVisible(checked)
         if checked:
-            self.adv_btn_toggle.setText("▼ 高级设置 Advanced Settings")
+            self.adv_btn_toggle.setText("鈻?楂樼骇璁剧疆 Advanced Settings")
         else:
-            self.adv_btn_toggle.setText("▶ 高级设置 Advanced Settings")
+            self.adv_btn_toggle.setText("鈻?楂樼骇璁剧疆 Advanced Settings")
 
     def on_toggle_horizontal_hotkey(self):
         new_state = not cfg.enable_horizontal
         setattr(cfg, "enable_horizontal", new_state)
         self.ui_widgets["enable_horizontal"].setChecked(new_state)
         self.tray_manager.show_message(
-            "横向滚动切换",
-            f"横向滚动 {'已开启' if new_state else '已关闭'}",
+            tr("main.toggle_horizontal.title"),
+            tr("main.toggle_horizontal.status_on" if new_state else "main.toggle_horizontal.status_off"),
         )
 
     def open_webdav_settings(self):
@@ -361,7 +425,7 @@ class MainWindow(QMainWindow):
             self.sender().blockSignals(True)
             self.sender().setChecked(not checked)
             self.sender().blockSignals(False)
-            QMessageBox.warning(self, "设置失败", "权限不足或路径错误。")
+            QMessageBox.warning(self, tr("main.settings_failed.title"), tr("main.settings_failed.body"))
 
     def _confirm_preset_action(self, title, text):
         reply = QMessageBox.question(
@@ -378,17 +442,17 @@ class MainWindow(QMainWindow):
         if suggested in BUILTIN_PRESETS:
             suggested = ""
         text, ok = QInputDialog.getText(
-            self, "保存预设", "请输入预设名称:", text=suggested
+            self, tr("main.preset.save_title"), tr("main.preset.save_prompt"), text=suggested
         )
         if ok and text:
             if text in BUILTIN_PRESETS:
                 QMessageBox.warning(
-                    self, "提示", "内置预设名称不可使用，请换一个名称。"
+                    self, tr("main.preset.builtin_warning_title"), tr("main.preset.builtin_warning_body")
                 )
                 return
             if text in self.presets and not self._confirm_preset_action(
-                "确认覆盖",
-                f"预设“{text}”已存在，是否用当前配置覆盖它？",
+                tr("main.preset.overwrite_title"),
+                tr("main.preset.overwrite_body", name=text),
             ):
                 return
             self.preset_manager.save_preset(text)
@@ -397,13 +461,13 @@ class MainWindow(QMainWindow):
     def delete_preset(self):
         name = self.combo_presets.currentText()
         if name in BUILTIN_PRESETS:
-            QMessageBox.warning(self, "提示", "内置预设无法删除。")
+            QMessageBox.warning(self, tr("main.preset.delete_builtin_title"), tr("main.preset.delete_builtin_body"))
             return
         if name not in self.presets:
             return
         if not self._confirm_preset_action(
-            "确认删除",
-            f"确定要删除预设“{name}”吗？此操作不可撤销。",
+            tr("main.preset.delete_confirm_title"),
+            tr("main.preset.delete_confirm_body", name=name),
         ):
             return
         self.preset_manager.delete_preset(name)
@@ -468,6 +532,6 @@ class MainWindow(QMainWindow):
             self.ui_widgets["enable_horizontal"].setChecked(False)
             QMessageBox.critical(
                 self,
-                "权限不足",
-                "无法启动鼠标拦截服务。\n\n这通常是因为缺少底层挂钩权限。",
+                tr("main.permission_denied.title"),
+                tr("main.permission_denied.body"),
             )

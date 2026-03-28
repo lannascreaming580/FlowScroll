@@ -134,6 +134,7 @@ class GlobalConfig:
         self.activation_mode = 0  # 0=点击中键启用/关闭, 1=长按中键时启用
         self.activation_compat_mode = False
         self.activation_delay_ms = 0
+        self.ui_language = "auto"
         self.filter_mode = 0
         self.filter_blacklist = []
         self.filter_whitelist = []
@@ -176,6 +177,7 @@ class GlobalConfig:
             "activation_mode": self.activation_mode,
             "activation_compat_mode": self.activation_compat_mode,
             "activation_delay_ms": self.activation_delay_ms,
+            "ui_language": self.ui_language,
             "webdav_url": self.webdav_url,
             "webdav_username": self.webdav_username,
             "enable_inertia": self.enable_inertia,
@@ -207,6 +209,7 @@ class GlobalConfig:
             "activation_mode": self.activation_mode,
             "activation_compat_mode": self.activation_compat_mode,
             "activation_delay_ms": self.activation_delay_ms,
+            "ui_language": self.ui_language,
             "enable_inertia": self.enable_inertia,
             "inertia_friction_ms": self.inertia_friction_ms,
             "inertia_threshold": self.inertia_threshold,
@@ -251,6 +254,7 @@ class GlobalConfig:
         self.activation_mode = data.get("activation_mode", 0)
         self.activation_compat_mode = data.get("activation_compat_mode", False)
         self.activation_delay_ms = int(data.get("activation_delay_ms", 0))
+        self.ui_language = data.get("ui_language", "auto")
         self.webdav_url = data.get("webdav_url", "")
         self.webdav_username = data.get("webdav_username", "")
         self.enable_inertia = data.get("enable_inertia", False)

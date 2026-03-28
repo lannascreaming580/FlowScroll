@@ -23,6 +23,8 @@ from FlowScroll.ui.styles import get_new_badge_style, get_hotkey_label_style
 import os
 import webbrowser
 
+from FlowScroll.i18n import tr
+
 
 def build_parameter_tab(main_window):
     tab1_widget = QWidget()
@@ -37,7 +39,7 @@ def build_parameter_tab(main_window):
         core_layout,
         "sensitivity",
         "ic_speed.svg",
-        "加速度曲线 (Sensitivity)",
+        tr("param.sensitivity"),
         cfg.sensitivity,
         1.0,
         5.0,
@@ -49,7 +51,7 @@ def build_parameter_tab(main_window):
         core_layout,
         "speed_factor",
         "ic_power.svg",
-        "基础速度倍率 (Base Speed)",
+        tr("param.speed_factor"),
         cfg.speed_factor,
         0.01,
         10.00,
@@ -61,7 +63,7 @@ def build_parameter_tab(main_window):
         core_layout,
         "dead_zone",
         "ic_target.svg",
-        "中心死区缓冲 (Dead Zone)",
+        tr("param.dead_zone"),
         cfg.dead_zone,
         0.0,
         100.0,
@@ -73,7 +75,7 @@ def build_parameter_tab(main_window):
         core_layout,
         "overlay_size",
         "ic_size.svg",
-        "导航指示器大小 (UI Size)",
+        tr("param.overlay_size"),
         cfg.overlay_size,
         30,
         150,
@@ -88,7 +90,7 @@ def build_parameter_tab(main_window):
     tab1_layout.addWidget(core_card)
 
     # --- 预设管理 (Presets) ---
-    lbl_preset = QLabel("配置预设 Presets")
+    lbl_preset = QLabel(tr("tab.presets.title"))
     lbl_preset.setObjectName("SectionTitle")
     tab1_layout.addWidget(lbl_preset)
 
@@ -109,14 +111,14 @@ def build_parameter_tab(main_window):
     main_window.combo_presets.setFixedHeight(38)
     preset_row.addWidget(main_window.combo_presets, 1)
 
-    btn_save = QPushButton("保存为新预设")
+    btn_save = QPushButton(tr("tab.presets.save"))
     btn_save.setObjectName("BtnPrimary")
     btn_save.setFocusPolicy(Qt.NoFocus)
     btn_save.setCursor(Qt.PointingHandCursor)
     btn_save.clicked.connect(main_window.save_new_preset)
     preset_row.addWidget(btn_save)
 
-    btn_del = QPushButton("删除")
+    btn_del = QPushButton(tr("tab.presets.delete"))
     btn_del.setObjectName("BtnDanger")
     btn_del.setFocusPolicy(Qt.NoFocus)
     btn_del.setCursor(Qt.PointingHandCursor)
@@ -159,7 +161,7 @@ def build_parameter_tab(main_window):
         main_window.btn_github.setIcon(QIcon(gh_path))
         main_window.btn_github.setIconSize(QSize(20, 20))
 
-    main_window.btn_github.setText(" GitHub · 某不科学的高数")
+    main_window.btn_github.setText(f" {tr('tab.author')}")
 
     main_window.btn_github.clicked.connect(
         lambda: webbrowser.open(
@@ -190,7 +192,7 @@ def build_advanced_tab(main_window):
     row_horizontal_layout.setContentsMargins(0, 0, 0, 0)
     row_horizontal_layout.setSpacing(12)
 
-    chk_horizontal = QCheckBox("启用横向穿梭模式")
+    chk_horizontal = QCheckBox(tr("tab.advanced.enable_horizontal"))
     chk_horizontal.setChecked(cfg.enable_horizontal)
     chk_horizontal.toggled.connect(lambda v: setattr(cfg, "enable_horizontal", v))
     chk_horizontal.setFocusPolicy(Qt.NoFocus)
@@ -225,7 +227,7 @@ def build_advanced_tab(main_window):
     row_inertia_layout.setContentsMargins(0, 0, 0, 0)
     row_inertia_layout.setSpacing(12)
 
-    chk_inertia = QCheckBox("启用惯性滚动")
+    chk_inertia = QCheckBox(tr("tab.advanced.enable_inertia"))
     chk_inertia.setChecked(cfg.enable_inertia)
     chk_inertia.toggled.connect(lambda v: setattr(cfg, "enable_inertia", v))
     chk_inertia.setFocusPolicy(Qt.NoFocus)
@@ -252,7 +254,7 @@ def build_advanced_tab(main_window):
     main_window.ui_widgets["minimize_to_tray"] = add_toggle_row(
         adv_layout,
         "minimize_to_tray",
-        "关闭后最小化到托盘",
+        tr("tab.advanced.minimize_to_tray"),
         cfg.minimize_to_tray,
         lambda v: setattr(cfg, "minimize_to_tray", v),
     )
@@ -262,7 +264,7 @@ def build_advanced_tab(main_window):
     add_toggle_row(
         adv_layout,
         None,
-        "开机自动启动并在后台运行",
+        tr("tab.advanced.autorun"),
         main_window.autostart.is_autorun(),
         main_window.toggle_autorun,
     )
@@ -272,14 +274,14 @@ def build_advanced_tab(main_window):
     main_window.ui_widgets["disable_fullscreen"] = add_toggle_row(
         adv_layout,
         "disable_fullscreen",
-        "全屏模式下禁用",
+        tr("tab.advanced.disable_fullscreen"),
         cfg.disable_fullscreen,
         lambda v: setattr(cfg, "disable_fullscreen", v),
         style_sheet="color: #FCA5A5;",
     )
     adv_layout.addWidget(create_h_line())
 
-    btn_reverse_mode = QPushButton("配置滚轮方向反转")
+    btn_reverse_mode = QPushButton(tr("tab.advanced.reverse_btn"))
     btn_reverse_mode.setObjectName("BtnAdv")
     btn_reverse_mode.setCursor(Qt.PointingHandCursor)
     move_path = resource_path(os.path.join("FlowScroll", "resources", "ic_move.svg"))
@@ -289,7 +291,7 @@ def build_advanced_tab(main_window):
     btn_reverse_mode.clicked.connect(main_window.open_reverse_mode_dialog)
     adv_layout.addWidget(btn_reverse_mode)
 
-    btn_work_mode = QPushButton("配置工作模式")
+    btn_work_mode = QPushButton(tr("tab.advanced.work_mode_btn"))
     btn_work_mode.setObjectName("BtnAdv")
     btn_work_mode.setCursor(Qt.PointingHandCursor)
     gear_path = resource_path(os.path.join("FlowScroll", "resources", "ic_gear.svg"))
@@ -299,7 +301,7 @@ def build_advanced_tab(main_window):
     btn_work_mode.clicked.connect(main_window.open_work_mode_dialog)
     adv_layout.addWidget(btn_work_mode)
 
-    btn_app_filter = QPushButton("配置应用过滤模式")
+    btn_app_filter = QPushButton(tr("tab.advanced.filter_mode_btn"))
     btn_app_filter.setObjectName("BtnAdv")
     btn_app_filter.setCursor(Qt.PointingHandCursor)
     filter_path = resource_path(os.path.join("FlowScroll", "resources", "ic_filter.svg"))
@@ -309,7 +311,7 @@ def build_advanced_tab(main_window):
     btn_app_filter.clicked.connect(main_window.open_filter_mode_dialog)
     adv_layout.addWidget(btn_app_filter)
 
-    btn_webdav = QPushButton("WebDAV 云同步配置")
+    btn_webdav = QPushButton(tr("tab.advanced.webdav_btn"))
     btn_webdav.setObjectName("BtnAdv")
     btn_webdav.setCursor(Qt.PointingHandCursor)
     cloud_path = resource_path(os.path.join("FlowScroll", "resources", "ic_cloud.svg"))
