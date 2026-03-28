@@ -19,12 +19,12 @@ class MacOSPlatform(PlatformInterface):
             res = subprocess.run(
                 ["osascript", "-e", script], capture_output=True, text=True
             )
-            window_name = res.stdout.strip()
+            process_name = res.stdout.strip()
             # macOS暂不实现精确全屏和类名探测
-            return (window_name, "", False)
+            return ("", process_name, "", False)
         except Exception as e:
             logger.debug(f"获取 macOS 前台窗口失败: {e}")
-            return ("", "", False)
+            return ("", "", "", False)
 
     def set_autostart(self, app_name, app_path, enable):
         if enable:

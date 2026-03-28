@@ -88,6 +88,7 @@ class TestRuntimeState:
         assert r.active is False
         assert r.origin_pos == (0, 0)
         assert r.current_window_name == ""
+        assert r.current_process_name == ""
         assert r.is_fullscreen is False
 
     def test_runtime_is_separate_from_config(self):
@@ -97,6 +98,7 @@ class TestRuntimeState:
         r = RuntimeState()
         r.active = True
         r.current_window_name = "TestApp"
+        r.current_process_name = "testapp"
 
         # config 不受影响
         assert not hasattr(c, "active") or c.__dict__.get("active", None) is None
@@ -243,11 +245,11 @@ class TestRules:
         cfg.filter_mode = 1
         cfg.filter_blacklist = ["potplayer", "vlc"]
         cfg.filter_whitelist = []
-        runtime.current_window_name = "PotPlayer"
+        runtime.current_process_name = "potplayer"
         runtime.is_fullscreen = False
         assert is_current_app_allowed() is False
 
-        runtime.current_window_name = "Chrome"
+        runtime.current_process_name = "chrome"
         assert is_current_app_allowed() is True
 
     def test_whitelist_mode(self):
@@ -259,10 +261,23 @@ class TestRules:
         cfg.filter_whitelist = ["chrome", "code"]
         runtime.is_fullscreen = False
 
-        runtime.current_window_name = "Google Chrome"
+        runtime.current_process_name = "chrome"
         assert is_current_app_allowed() is True
 
-        runtime.current_window_name = "PotPlayer"
+        runtime.current_process_name = "potplayer"
+        assert is_current_app_allowed() is False
+
+    def test_filter_falls_back_to_window_name_when_process_name_missing(self):
+        from FlowScroll.core.config import cfg, runtime
+        from FlowScroll.core.rules import is_current_app_allowed
+
+        cfg.filter_mode = 1
+        cfg.filter_blacklist = ["chrome"]
+        cfg.filter_whitelist = []
+        runtime.current_process_name = ""
+        runtime.current_window_name = "Google Chrome"
+        runtime.is_fullscreen = False
+
         assert is_current_app_allowed() is False
 
     def test_legacy_filter_list_migration(self):

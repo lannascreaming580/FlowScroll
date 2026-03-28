@@ -17,7 +17,7 @@ else:
 
     class NullPlatform(PlatformInterface):
         def get_frontmost_window_info(self):
-            return ("", "", False)
+            return ("", "", "", False)
 
         def set_autostart(self, a, p, e):
             return False

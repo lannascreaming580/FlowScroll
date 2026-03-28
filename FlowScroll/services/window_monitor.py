@@ -17,11 +17,12 @@ class WindowMonitor(threading.Thread):
         time.sleep(WINDOW_MONITOR_START_DELAY)
         while True:
             try:
-                name, cls_name, is_fullscreen = (
+                window_name, process_name, cls_name, is_fullscreen = (
                     system_platform.get_frontmost_window_info()
                 )
                 with STATE_LOCK:
-                    runtime.current_window_name = name
+                    runtime.current_window_name = window_name
+                    runtime.current_process_name = process_name
                     runtime.current_window_class = cls_name
                     runtime.is_fullscreen = is_fullscreen
             except Exception as e:

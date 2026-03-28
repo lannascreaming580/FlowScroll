@@ -4,10 +4,10 @@ from typing import Tuple
 
 class PlatformInterface(ABC):
     @abstractmethod
-    def get_frontmost_window_info(self) -> Tuple[str, str, bool]:
+    def get_frontmost_window_info(self) -> Tuple[str, str, str, bool]:
         """
         获取当前前台窗口的信息。
-        返回: (进程名/窗口名, 窗口类名, 是否全屏)
+        返回: (窗口名, 进程名, 窗口类名, 是否全屏)
         """
         pass
 

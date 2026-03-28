@@ -12,7 +12,7 @@ Bring browser-style auto-scroll to your whole desktop.
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
-[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.0-2563EB.svg)]()
+[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.1-2563EB.svg)]()
 
 </div>
 
@@ -174,7 +174,7 @@ No. FlowScroll targets global interaction outside browser-native behavior and su
 
 ### How are app keywords matched?
 
-Case-insensitive substring match against foreground window/app name.
+Case-insensitive substring match against the foreground process name.
 
 ### Why does it sometimes look inactive?
 

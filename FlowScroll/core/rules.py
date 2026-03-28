@@ -12,7 +12,9 @@ def is_current_app_allowed() -> bool:
         disable_desktop = cfg.disable_desktop
         current_window_class = runtime.current_window_class
         filter_mode = cfg.filter_mode
-        app_name = runtime.current_window_name.lower()
+        process_name = (
+            runtime.current_process_name or runtime.current_window_name
+        ).lower()
         filter_blacklist = list(cfg.filter_blacklist)
         filter_whitelist = list(cfg.filter_whitelist)
 
@@ -30,14 +32,14 @@ def is_current_app_allowed() -> bool:
     # 榛戝悕鍗曟ā寮?
     if filter_mode == 1:
         for keyword in filter_blacklist:
-            if keyword.lower() in app_name:
+            if keyword.lower() in process_name:
                 return False
         return True
 
     # 鐧藉悕鍗曟ā寮?
     if filter_mode == 2:
         for keyword in filter_whitelist:
-            if keyword.lower() in app_name:
+            if keyword.lower() in process_name:
                 return True
         return False
 

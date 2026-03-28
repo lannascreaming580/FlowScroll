@@ -100,6 +100,7 @@ class RuntimeState:
     active: bool = False
     origin_pos: Tuple[int, int] = (0, 0)
     current_window_name: str = ""
+    current_process_name: str = ""
     current_window_class: str = ""
     is_fullscreen: bool = False
 

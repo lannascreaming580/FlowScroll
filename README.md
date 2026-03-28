@@ -12,7 +12,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
-[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.0-2563EB.svg)]()
+[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.1-2563EB.svg)]()
 
 </div>
 
@@ -240,7 +240,7 @@ WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Mana
 ### 1. 会和浏览器自带的中键自动滚动冲突吗？
 
 默认情况下会由 FlowScroll 接管中键滚动行为，也就是**会替代浏览器原生中键滚动**。  
-如果你不希望在浏览器中启用 FlowScroll，只需要把浏览器名称关键词加入**黑名单**（例如 `chrome`、`edge`、`firefox`），即可直接禁止在浏览器中使用。
+如果你不希望在浏览器中启用 FlowScroll，只需要把浏览器进程名关键词加入**黑名单**（例如 `chrome`、`msedge`、`firefox`），即可直接禁止在浏览器中使用。
 
 ### 2. 黑名单和白名单有什么区别？
 
@@ -250,8 +250,8 @@ WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Mana
 
 ### 3. 关键词如何匹配应用？
 
-关键词按“窗口标题包含”进行匹配，不区分大小写。  
-建议使用稳定且简短的关键词，例如 `chrome`、`code`、`potplayer`。
+关键词按“前台进程名包含”进行匹配，不区分大小写。  
+建议使用稳定且简短的进程名片段，例如 `chrome`、`code`、`potplayer`。
 
 ### 4. 为什么有时看起来不生效？
 

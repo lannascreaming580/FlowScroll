@@ -29,14 +29,33 @@ class WindowsPlatform(PlatformInterface):
     def get_frontmost_window_info(self):
         try:
             user32 = ctypes.windll.user32
+            kernel32 = ctypes.windll.kernel32
             hwnd = user32.GetForegroundWindow()
             if not hwnd:
-                return ("", "", False)
+                return ("", "", "", False)
 
             length = user32.GetWindowTextLengthW(hwnd)
             buf = ctypes.create_unicode_buffer(length + 1)
             user32.GetWindowTextW(hwnd, buf, length + 1)
             window_name = buf.value
+
+            process_name = ""
+            pid = wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+            if pid.value:
+                process_handle = kernel32.OpenProcess(0x1000, False, pid.value)
+                if process_handle:
+                    try:
+                        image_buf = ctypes.create_unicode_buffer(1024)
+                        image_len = wintypes.DWORD(len(image_buf))
+                        if kernel32.QueryFullProcessImageNameW(
+                            process_handle, 0, image_buf, ctypes.byref(image_len)
+                        ):
+                            process_name = os.path.splitext(
+                                os.path.basename(image_buf.value)
+                            )[0]
+                    finally:
+                        kernel32.CloseHandle(process_handle)
 
             class_buf = ctypes.create_unicode_buffer(256)
             user32.GetClassNameW(hwnd, class_buf, 256)
@@ -92,10 +111,10 @@ class WindowsPlatform(PlatformInterface):
                         # 我们通过检查窗口是否遮挡了整个屏幕来判断：如果屏幕有任务栏，普通最大化绝不会覆盖它。
                         is_fullscreen = False
 
-            return (window_name, window_class, is_fullscreen)
+            return (window_name, process_name, window_class, is_fullscreen)
         except Exception as e:
             logger.debug(f"获取 Windows 前台窗口失败: {e}")
-            return ("", "", False)
+            return ("", "", "", False)
 
     def set_autostart(self, app_name, app_path, enable):
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
