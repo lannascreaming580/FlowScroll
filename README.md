@@ -12,9 +12,11 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
-[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.2-2563EB.svg)]()
 
 </div>
+
+`main` 分支用于持续开发，可能会领先于最新稳定版。
+如果你想获取稳定版本、下载包和正式更新记录，请以 GitHub Release 为准。
 
 ---
 
@@ -271,6 +273,8 @@ WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Mana
 ## 🛠️ 构建指南
 
 使用包管理器 `uv` 进行依赖和环境管理。
+
+如果你直接从 `main` 运行源码，使用的可能是开发中版本，而不是最新稳定发布版。
 
 ```bash
 git clone https://github.com/CyrilPeng/FlowScroll.git

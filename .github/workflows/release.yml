@@ -9,7 +9,44 @@ permissions:
   contents: write
 
 jobs:
+  validate-release:
+    name: Validate Release Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Tag Format
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import re
+
+          ref_name = os.environ["GITHUB_REF_NAME"]
+          if not re.fullmatch(r"v\d+\.\d+\.\d+", ref_name):
+              raise SystemExit(
+                  f"Release tag must be stable semantic version like v1.2.3, got: {ref_name}"
+              )
+          print(f"Release tag format OK: {ref_name}")
+          PY
+
+      - name: Validate Changelog Entry Exists
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          version = os.environ["GITHUB_REF_NAME"]
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          if f"## {version}" not in changelog:
+              raise SystemExit(f"CHANGELOG.md is missing section for {version}")
+          print(f"CHANGELOG entry found for {version}")
+          PY
+
   build:
+    needs: validate-release
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:

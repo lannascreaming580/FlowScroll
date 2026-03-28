@@ -46,7 +46,10 @@ from FlowScroll.ui.preset_manager import PresetManager
 from FlowScroll.ui.tray_manager import TrayManager
 from FlowScroll.services.window_monitor import WindowMonitor
 from FlowScroll.services.logging_service import logger
-from FlowScroll.services.update_checker import is_newer_version
+from FlowScroll.services.update_checker import (
+    is_newer_version,
+    is_prerelease_version,
+)
 
 mouse_controller = mouse.Controller()
 
@@ -62,8 +65,13 @@ class MainWindow(QMainWindow):
         from FlowScroll import __version__
 
         self.current_version = __version__
+        self.version_label = (
+            f"{self.current_version} (Dev)"
+            if is_prerelease_version(self.current_version)
+            else self.current_version
+        )
 
-        self.setWindowTitle(f"FlowScroll v{self.current_version}")
+        self.setWindowTitle(f"FlowScroll v{self.version_label}")
         self.setMinimumSize(420, 680)
         self.resize(650, 720)
 
@@ -295,7 +303,7 @@ class MainWindow(QMainWindow):
         self.sync_ui_from_config()
 
     def retranslate_ui(self):
-        self.setWindowTitle(f"FlowScroll v{self.current_version}")
+        self.setWindowTitle(f"FlowScroll v{self.version_label}")
         self.header_subtitle.setText(tr("main.subtitle"))
         self.btn_language.setText(tr("main.language.button"))
         self.tray_manager.retranslate_ui()

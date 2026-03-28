@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- `main` 分支版本切换为开发中标识，稳定版本以 Release / Git tag 为准
+
 ## v1.6.2
 
 ### Fixed

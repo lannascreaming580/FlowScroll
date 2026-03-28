@@ -9,7 +9,50 @@ on:
   pull_request:
 
 jobs:
+  version-discipline:
+    name: Version Discipline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Main Branch Version Policy
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          version_text = Path("FlowScroll/__init__.py").read_text(encoding="utf-8")
+          match = re.search(r'__version__\s*=\s*"([^"]+)"', version_text)
+          if not match:
+              raise SystemExit("Unable to locate __version__ in FlowScroll/__init__.py")
+          version = match.group(1)
+
+          normalized = version.lower()
+          prerelease_markers = ("dev", "a", "b", "rc", "alpha", "beta", "pre")
+          if not any(marker in normalized for marker in prerelease_markers):
+              raise SystemExit(
+                  f"main branch must use a development/prerelease version, got: {version}"
+              )
+          print(f"main branch version policy OK: {version}")
+          PY
+
+      - name: Validate Changelog Has Unreleased
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          if "## Unreleased" not in changelog:
+              raise SystemExit("CHANGELOG.md must contain an '## Unreleased' section")
+          print("CHANGELOG Unreleased section OK")
+          PY
+
   test:
+    needs: version-discipline
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:

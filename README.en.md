@@ -12,9 +12,11 @@ Bring browser-style auto-scroll to your whole desktop.
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
-[![Current Version](https://img.shields.io/badge/Current%20Version-v1.6.2-2563EB.svg)]()
 
 </div>
+
+`main` is the development branch and may be ahead of the latest stable release.
+For stable builds, downloads, and release notes, use GitHub Releases.
 
 ---
 
@@ -187,6 +189,8 @@ No. Password is kept in local secure storage and excluded from sync payload.
 ---
 
 ## Build from Source
+
+If you run directly from `main`, you may be using an in-progress development build rather than the latest stable release.
 
 ```bash
 git clone https://github.com/CyrilPeng/FlowScroll.git

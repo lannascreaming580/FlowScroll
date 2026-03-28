@@ -303,6 +303,17 @@ class TestUpdateChecker:
         assert is_newer_version("1.3.9", "1.4.0") is False
         assert is_newer_version("1.4.0-beta.1", "1.4.0") is False
 
+    def test_prerelease_version_detection(self):
+        from FlowScroll.services.update_checker import is_prerelease_version
+
+        assert is_prerelease_version("1.6.3.dev0") is True
+        assert is_prerelease_version("1.6.3") is False
+
+    def test_stable_release_is_not_newer_than_dev_build(self):
+        from FlowScroll.services.update_checker import is_newer_version
+
+        assert is_newer_version("1.6.2", "1.6.3.dev0") is False
+
 
 # ---------------------------------------------------------------------------
 # Constants 基础检查
