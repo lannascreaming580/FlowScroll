@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.0
+
+### Added
+- 新增中英文界面资源，并支持在主界面切换 UI 语言
+
+### Fixed
+- 修复 `CapsLock` / `NumLock` / `ScrollLock` 等键位在输入监听中的标准化匹配问题
+
 ## v1.5.3
 
 ### Fixed

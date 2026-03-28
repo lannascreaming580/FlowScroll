@@ -100,7 +100,18 @@ class GlobalInputListener:
         hotkey = normalize_hotkey_string(hotkey)
         if not hotkey or hotkey.startswith('mouse_'):
             return set()
-        return set(hotkey.split('+'))
+        alias_fallback = {
+            'capslock': 'caps_lock',
+            'numlock': 'num_lock',
+            'scrolllock': 'scroll_lock',
+        }
+        normalized_parts = []
+        for raw_part in hotkey.split('+'):
+            part = normalize_hotkey_part(raw_part)
+            part = alias_fallback.get(part, part)
+            if part:
+                normalized_parts.append(part)
+        return set(normalized_parts)
 
     def _is_keyboard_hotkey_active(self, hotkey, current_keys):
         target_keys = self._get_keyboard_hotkey_parts(hotkey)
