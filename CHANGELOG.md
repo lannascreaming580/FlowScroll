@@ -5,6 +5,13 @@
 ### Changed
 - `main` 分支版本切换为开发中标识，稳定版本以 Release / Git tag 为准
 
+### Changed
+- 更新检查改为显式语义化版本比较，正式版会正确覆盖同版本号的 dev/rc 预发布版本
+- 应用过滤改为“优先进程名，失败时回退到窗口标题”，并在 UI 中显示相应提示
+
+### Fixed
+- 线程启动流程分离 `WindowMonitor`、`ScrollEngine`、`GlobalInputListener` 的失败路径，避免滚动引擎启动失败后被误报为键鼠权限问题
+
 ## v1.6.2
 
 ### Fixed

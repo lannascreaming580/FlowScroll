@@ -79,6 +79,9 @@ class MainWindow(QMainWindow):
         self.overlay = ResizableOverlay()
         self.autostart = AutoStartManager()
         self.preset_manager = PresetManager()
+        self.window_monitor = None
+        self.scroller = None
+        self.input_listener = None
 
         self.ui_widgets = {}
         self.ui_text_widgets = {}
@@ -444,6 +447,15 @@ class MainWindow(QMainWindow):
     def open_filter_mode_dialog(self):
         from FlowScroll.ui.dialogs import AppFilterDialog
 
+        with STATE_LOCK:
+            process_name_available = runtime.process_name_available
+            filter_mode = cfg.filter_mode
+        if filter_mode in (1, 2) and not process_name_available:
+            QMessageBox.information(
+                self,
+                tr("dialog.filter.process_name_unavailable_title"),
+                tr("dialog.filter.process_name_unavailable"),
+            )
         dialog = AppFilterDialog(self)
         if dialog.exec() == QDialog.Accepted:
             self.save_presets_to_file()
@@ -554,6 +566,10 @@ class MainWindow(QMainWindow):
         self.overlay.hide()
 
     def start_threads(self):
+        self.window_monitor = None
+        self.scroller = None
+        self.input_listener = None
+
         try:
             self.window_monitor = WindowMonitor()
             self.window_monitor.start()
@@ -565,6 +581,11 @@ class MainWindow(QMainWindow):
             self.scroller.start()
         except Exception as e:
             logger.error(f"Failed to start ScrollEngine: {e}")
+            QMessageBox.critical(
+                self,
+                tr("main.scroll_engine_failed.title"),
+                tr("main.scroll_engine_failed.body"),
+            )
 
         try:
             self.input_listener = GlobalInputListener(
@@ -573,7 +594,8 @@ class MainWindow(QMainWindow):
             self.input_listener.start()
         except Exception as e:
             logger.error(f"Failed to start GlobalInputListener: {e}")
-            self.ui_widgets["enable_horizontal"].setChecked(False)
+            if "enable_horizontal" in self.ui_widgets:
+                self.ui_widgets["enable_horizontal"].setChecked(False)
             QMessageBox.critical(
                 self,
                 tr("main.permission_denied.title"),

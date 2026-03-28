@@ -15,7 +15,7 @@
 )
 from PySide6.QtCore import Qt
 
-from FlowScroll.core.config import cfg
+from FlowScroll.core.config import STATE_LOCK, cfg, runtime
 from FlowScroll.i18n import tr
 from FlowScroll.ui.components import HotkeyEdit
 from FlowScroll.ui.helpers import create_card, create_h_line
@@ -277,6 +277,17 @@ class AppFilterDialog(QDialog):
         subtitle.setStyleSheet('color: #94A3B8; font-size: 13px;')
         layout.addWidget(title)
         layout.addWidget(subtitle)
+
+        with STATE_LOCK:
+            process_name_available = runtime.process_name_available
+
+        self.process_name_warning = QLabel(tr("dialog.filter.process_name_unavailable"))
+        self.process_name_warning.setWordWrap(True)
+        self.process_name_warning.setStyleSheet(
+            'color: #FCA5A5; background: rgba(127, 29, 29, 0.28); border: 1px solid rgba(252, 165, 165, 0.35); border-radius: 10px; padding: 10px 12px;'
+        )
+        self.process_name_warning.setVisible(not process_name_available)
+        layout.addWidget(self.process_name_warning)
 
         mode_card, mode_layout = create_card()
         mode_layout.setContentsMargins(16, 16, 16, 16)

@@ -12,11 +12,13 @@ def is_current_app_allowed() -> bool:
         disable_desktop = cfg.disable_desktop
         current_window_class = runtime.current_window_class
         filter_mode = cfg.filter_mode
-        process_name = (
-            runtime.current_process_name or runtime.current_window_name
-        ).lower()
+        process_name = runtime.current_process_name.strip().lower()
+        window_name = runtime.current_window_name.strip().lower()
+        process_name_available = runtime.process_name_available
         filter_blacklist = list(cfg.filter_blacklist)
         filter_whitelist = list(cfg.filter_whitelist)
+
+    match_target = process_name if process_name_available else window_name
 
     if disable_fullscreen and is_fullscreen:
         return False
@@ -32,14 +34,14 @@ def is_current_app_allowed() -> bool:
     # 榛戝悕鍗曟ā寮?
     if filter_mode == 1:
         for keyword in filter_blacklist:
-            if keyword.lower() in process_name:
+            if keyword.lower() in match_target:
                 return False
         return True
 
     # 鐧藉悕鍗曟ā寮?
     if filter_mode == 2:
         for keyword in filter_whitelist:
-            if keyword.lower() in process_name:
+            if keyword.lower() in match_target:
                 return True
         return False
 

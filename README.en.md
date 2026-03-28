@@ -17,6 +17,7 @@ Bring browser-style auto-scroll to your whole desktop.
 
 `main` is the development branch and may be ahead of the latest stable release.
 For stable builds, downloads, and release notes, use GitHub Releases.
+App filter rules match the foreground process name first. If the current environment cannot identify a process name, FlowScroll temporarily falls back to window-title matching for that foreground app.
 
 ---
 
@@ -177,6 +178,7 @@ No. FlowScroll targets global interaction outside browser-native behavior and su
 ### How are app keywords matched?
 
 Case-insensitive substring match against the foreground process name.
+If the current environment cannot identify a process name, FlowScroll falls back to the foreground window title for that app only.
 
 ### Why does it sometimes look inactive?
 

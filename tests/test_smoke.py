@@ -89,6 +89,7 @@ class TestRuntimeState:
         assert r.origin_pos == (0, 0)
         assert r.current_window_name == ""
         assert r.current_process_name == ""
+        assert r.process_name_available is False
         assert r.is_fullscreen is False
 
     def test_runtime_is_separate_from_config(self):
@@ -246,6 +247,7 @@ class TestRules:
         cfg.filter_blacklist = ["potplayer", "vlc"]
         cfg.filter_whitelist = []
         runtime.current_process_name = "potplayer"
+        runtime.process_name_available = True
         runtime.is_fullscreen = False
         assert is_current_app_allowed() is False
 
@@ -262,9 +264,11 @@ class TestRules:
         runtime.is_fullscreen = False
 
         runtime.current_process_name = "chrome"
+        runtime.process_name_available = True
         assert is_current_app_allowed() is True
 
         runtime.current_process_name = "potplayer"
+        runtime.process_name_available = True
         assert is_current_app_allowed() is False
 
     def test_filter_falls_back_to_window_name_when_process_name_missing(self):
@@ -275,7 +279,22 @@ class TestRules:
         cfg.filter_blacklist = ["chrome"]
         cfg.filter_whitelist = []
         runtime.current_process_name = ""
+        runtime.process_name_available = False
         runtime.current_window_name = "Google Chrome"
+        runtime.is_fullscreen = False
+
+        assert is_current_app_allowed() is False
+
+    def test_filter_prefers_process_name_over_window_name(self):
+        from FlowScroll.core.config import cfg, runtime
+        from FlowScroll.core.rules import is_current_app_allowed
+
+        cfg.filter_mode = 1
+        cfg.filter_blacklist = ["code"]
+        cfg.filter_whitelist = []
+        runtime.current_process_name = "code"
+        runtime.process_name_available = True
+        runtime.current_window_name = "Unrelated Window Title"
         runtime.is_fullscreen = False
 
         assert is_current_app_allowed() is False
@@ -313,6 +332,16 @@ class TestUpdateChecker:
         from FlowScroll.services.update_checker import is_newer_version
 
         assert is_newer_version("1.6.2", "1.6.3.dev0") is False
+
+    def test_stable_release_is_newer_than_same_dev_line(self):
+        from FlowScroll.services.update_checker import is_newer_version
+
+        assert is_newer_version("1.6.3", "1.6.3.dev0") is True
+
+    def test_stable_release_is_newer_than_release_candidate(self):
+        from FlowScroll.services.update_checker import is_newer_version
+
+        assert is_newer_version("1.6.3", "1.6.3rc1") is True
 
 
 # ---------------------------------------------------------------------------

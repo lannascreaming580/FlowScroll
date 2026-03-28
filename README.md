@@ -1,5 +1,7 @@
 <div align="center">
 
+
+
 # <img src="FlowScroll/resources/FlowScroll.svg" width="40" align="center" alt="Logo" /> FlowScroll
 
 `中文` | [English](README.en.md)
@@ -17,6 +19,7 @@
 
 `main` 分支用于持续开发，可能会领先于最新稳定版。
 如果你想获取稳定版本、下载包和正式更新记录，请以 GitHub Release 为准。
+应用过滤规则优先按前台进程名匹配。如果当前环境无法识别进程名，FlowScroll 会仅对当前前台应用临时回退为窗口标题匹配。
 
 ---
 
@@ -254,6 +257,7 @@ WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Mana
 
 关键词按“前台进程名包含”进行匹配，不区分大小写。  
 建议使用稳定且简短的进程名片段，例如 `chrome`、`code`、`potplayer`。
+如果当前环境无法识别进程名，则仅对当前前台应用回退为窗口标题匹配。
 
 ### 4. 为什么有时看起来不生效？
 

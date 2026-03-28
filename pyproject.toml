@@ -29,6 +29,7 @@ dependencies = [
     "pynput>=1.7.6",
     "zstandard>=0.22.0",
     "keyring>=24.0",
+    "packaging>=24.0",
 ]
 
 [project.optional-dependencies]

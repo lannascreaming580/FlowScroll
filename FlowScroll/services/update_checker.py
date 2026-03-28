@@ -1,7 +1,7 @@
 import urllib.request
 import json
-import re
 from FlowScroll.services.logging_service import logger
+from packaging.version import InvalidVersion, Version
 
 try:
     from PySide6.QtCore import QThread, Signal
@@ -19,29 +19,34 @@ GITHUB_FALLBACK_URL = "https://github.com/CyrilPeng/FlowScroll/releases"
 GITEE_FALLBACK_URL = "https://gitee.com/Cyril_P/FlowScroll/releases"
 
 
-def parse_version_components(version: str) -> tuple[int, ...]:
-    if not version:
-        return ()
-    return tuple(int(part) for part in re.findall(r"\d+", version))
+def parse_version(version: str) -> Version | None:
+    token = (version or "").strip()
+    if not token:
+        return None
+    if token.startswith(("v", "V")):
+        token = token[1:]
+    try:
+        return Version(token)
+    except InvalidVersion:
+        return None
 
 
 def is_prerelease_version(version: str) -> bool:
-    normalized = version.lower()
-    return any(marker in normalized for marker in ("alpha", "beta", "rc", "pre", "dev"))
+    parsed = parse_version(version)
+    if parsed is None:
+        return False
+    return parsed.is_prerelease or parsed.is_devrelease
 
 
 def is_newer_version(latest_version: str, current_version: str) -> bool:
-    if is_prerelease_version(latest_version):
+    latest = parse_version(latest_version)
+    current = parse_version(current_version)
+    if latest is None or current is None:
         return False
 
-    latest = parse_version_components(latest_version)
-    current = parse_version_components(current_version)
-    if not latest or not current:
+    if latest.is_prerelease or latest.is_devrelease:
         return False
 
-    max_len = max(len(latest), len(current))
-    latest += (0,) * (max_len - len(latest))
-    current += (0,) * (max_len - len(current))
     return latest > current
 
 
