@@ -12,7 +12,6 @@ class WindowsPlatform(PlatformInterface):
     def __init__(self):
         self.screen_width = 0
         self.screen_height = 0
-        # 获取主屏幕分辨率（粗略）。
         try:
             from PySide6.QtWidgets import QApplication
 
@@ -65,8 +64,7 @@ class WindowsPlatform(PlatformInterface):
             rect = wintypes.RECT()
             user32.GetWindowRect(hwnd, ctypes.byref(rect))
 
-            # 获取窗口所在显示器信息。
-            hmonitor = user32.MonitorFromWindow(hwnd, 2)  # MONITOR_DEFAULTTONEAREST
+            hmonitor = user32.MonitorFromWindow(hwnd, 2)
 
             class MONITORINFO(ctypes.Structure):
                 _fields_ = [
@@ -80,8 +78,7 @@ class WindowsPlatform(PlatformInterface):
             mi.cbSize = ctypes.sizeof(MONITORINFO)
             user32.GetMonitorInfoW(hmonitor, ctypes.byref(mi))
 
-            # 判断真正的全屏：
-            # 1. 窗口区域必须覆盖整个显示器区域（rcMonitor）。
+            # 仅当窗口区域覆盖整个显示器时才视为全屏。
             is_fullscreen = (
                 rect.left <= mi.rcMonitor.left
                 and rect.top <= mi.rcMonitor.top
@@ -89,16 +86,14 @@ class WindowsPlatform(PlatformInterface):
                 and rect.bottom >= mi.rcMonitor.bottom
             )
 
-            # 2. 排除普通“最大化”窗口。
+            # 排除普通最大化窗口，避免误判为全屏。
             if is_fullscreen:
-                style = user32.GetWindowLongW(hwnd, -16)  # GWL_STYLE
-                is_maximized = bool(style & 0x01000000)  # WS_MAXIMIZE
+                style = user32.GetWindowLongW(hwnd, -16)
+                is_maximized = bool(style & 0x01000000)
 
                 if is_maximized:
                     monitor_h = mi.rcMonitor.bottom - mi.rcMonitor.top
                     window_h = rect.bottom - rect.top
-
-                    # 普通最大化窗口通常不会严格等于真正全屏窗口高度。
                     if window_h != monitor_h:
                         is_fullscreen = False
 

@@ -1,20 +1,13 @@
-"""配置系统与凭据服务的基础 smoke test。
+"""配置系统与凭据服务的基础 smoke test。"""
 
-不依赖 GUI，可在 CI 中运行。
-"""
-
+import importlib
 import json
 import os
-import tempfile
-import importlib
 import sys
+import tempfile
 import types
+
 import pytest
-
-
-# ---------------------------------------------------------------------------
-# GlobalConfig 持久化配置
-# ---------------------------------------------------------------------------
 
 
 class TestGlobalConfig:
@@ -70,14 +63,8 @@ class TestGlobalConfig:
         c = GlobalConfig()
         c.from_dict({"sensitivity": 9.0})
         assert c.sensitivity == 9.0
-        # 其他字段保持默认
         assert c.speed_factor == 2.0
         assert c.dead_zone == 20.0
-
-
-# ---------------------------------------------------------------------------
-# RuntimeState 运行时状态
-# ---------------------------------------------------------------------------
 
 
 class TestRuntimeState:
@@ -90,7 +77,8 @@ class TestRuntimeState:
         assert r.current_window_name == ""
         assert r.current_process_name == ""
         assert r.process_name_status == "unknown"
-        assert r.process_name_available is False
+        assert r.last_match_target == ""
+        assert r.window_info_failure_count == 0
         assert r.is_fullscreen is False
 
     def test_runtime_is_separate_from_config(self):
@@ -102,13 +90,7 @@ class TestRuntimeState:
         r.current_window_name = "TestApp"
         r.current_process_name = "testapp"
 
-        # config 不受影响
         assert not hasattr(c, "active") or c.__dict__.get("active", None) is None
-
-
-# ---------------------------------------------------------------------------
-# BUILTIN_PRESETS
-# ---------------------------------------------------------------------------
 
 
 class TestBuiltinPresets:
@@ -127,16 +109,11 @@ class TestBuiltinPresets:
         assert DEFAULT_PRESET_NAME in BUILTIN_PRESETS
 
 
-# ---------------------------------------------------------------------------
-# PresetManager 文件加载/保存
-# ---------------------------------------------------------------------------
-
-
 class TestPresetManager:
     def _make_temp_config(self, data):
         fd, path = tempfile.mkstemp(suffix=".json")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f)
+            json.dump(data, f, ensure_ascii=False)
         return path
 
     def test_load_and_save_roundtrip(self, monkeypatch):
@@ -191,6 +168,25 @@ class TestPresetManager:
         finally:
             os.unlink(path)
 
+    def test_invalid_preset_structure_falls_back_to_defaults(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config({"presets": [], "last_used": []})
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+
+            pm.load_from_file()
+
+            assert pm.presets == {}
+            assert pm.current_preset_name == config_module.DEFAULT_PRESET_NAME
+        finally:
+            os.unlink(path)
+
     def test_password_not_saved_to_file(self, monkeypatch):
         import FlowScroll.core.config as config_module
         import FlowScroll.ui.preset_manager as pm_module
@@ -216,17 +212,11 @@ class TestPresetManager:
             os.unlink(path)
 
 
-# ---------------------------------------------------------------------------
-# CredentialService (不依赖系统 keyring 的场景)
-# ---------------------------------------------------------------------------
-
-
 class TestCredentialService:
     def test_memory_fallback(self):
         from FlowScroll.services.credential_service import CredentialService
 
         cs = CredentialService()
-        # 不论 keyring 是否可用，内存 fallback 都应能工作
         cs.save_password("test123")
         assert cs.load_password() == "test123"
 
@@ -239,11 +229,6 @@ class TestCredentialService:
         cs = CredentialService()
         cs.save_password("")
         assert cs.load_password() == ""
-
-
-# ---------------------------------------------------------------------------
-# Rules 非 GUI 逻辑
-# ---------------------------------------------------------------------------
 
 
 class TestRules:
@@ -273,7 +258,6 @@ class TestRules:
         cfg.filter_whitelist = []
         runtime.current_process_name = "potplayer"
         runtime.process_name_status = "available"
-        runtime.process_name_available = True
         runtime.is_fullscreen = False
         assert is_current_app_allowed() is False
 
@@ -291,12 +275,10 @@ class TestRules:
 
         runtime.current_process_name = "chrome"
         runtime.process_name_status = "available"
-        runtime.process_name_available = True
         assert is_current_app_allowed() is True
 
         runtime.current_process_name = "potplayer"
         runtime.process_name_status = "available"
-        runtime.process_name_available = True
         assert is_current_app_allowed() is False
 
     def test_filter_falls_back_to_window_name_when_process_name_missing(self):
@@ -308,7 +290,6 @@ class TestRules:
         cfg.filter_whitelist = []
         runtime.current_process_name = ""
         runtime.process_name_status = "unavailable"
-        runtime.process_name_available = False
         runtime.current_window_name = "Google Chrome"
         runtime.is_fullscreen = False
 
@@ -323,27 +304,10 @@ class TestRules:
         cfg.filter_whitelist = []
         runtime.current_process_name = "code"
         runtime.process_name_status = "available"
-        runtime.process_name_available = True
         runtime.current_window_name = "Unrelated Window Title"
         runtime.is_fullscreen = False
 
         assert is_current_app_allowed() is False
-
-    def test_filter_unknown_status_uses_last_known_target(self):
-        from FlowScroll.core.config import cfg, runtime
-        from FlowScroll.core.rules import is_current_app_allowed
-
-        cfg.filter_mode = 2
-        cfg.filter_blacklist = []
-        cfg.filter_whitelist = ["chrome"]
-        runtime.current_process_name = ""
-        runtime.current_window_name = ""
-        runtime.process_name_status = "unknown"
-        runtime.process_name_available = False
-        runtime.last_match_target = "chrome"
-        runtime.is_fullscreen = False
-
-        assert is_current_app_allowed() is True
 
     def test_filter_unknown_status_does_not_block_before_first_snapshot(self):
         from FlowScroll.core.config import cfg, runtime
@@ -355,7 +319,21 @@ class TestRules:
         runtime.current_process_name = ""
         runtime.current_window_name = ""
         runtime.process_name_status = "unknown"
-        runtime.process_name_available = False
+        runtime.last_match_target = "chrome"
+        runtime.is_fullscreen = False
+
+        assert is_current_app_allowed() is True
+
+    def test_filter_stale_status_does_not_reuse_old_target(self):
+        from FlowScroll.core.config import cfg, runtime
+        from FlowScroll.core.rules import is_current_app_allowed
+
+        cfg.filter_mode = 2
+        cfg.filter_blacklist = []
+        cfg.filter_whitelist = ["chrome"]
+        runtime.current_process_name = ""
+        runtime.current_window_name = ""
+        runtime.process_name_status = "stale"
         runtime.last_match_target = ""
         runtime.is_fullscreen = False
 
@@ -406,22 +384,12 @@ class TestUpdateChecker:
         assert is_newer_version("1.6.3", "1.6.3rc1") is True
 
 
-# ---------------------------------------------------------------------------
-# Constants 基础检查
-# ---------------------------------------------------------------------------
-
-
 class TestConstants:
     def test_config_version_is_int(self):
         from FlowScroll.constants import CONFIG_VERSION
 
         assert isinstance(CONFIG_VERSION, int)
         assert CONFIG_VERSION > 0
-
-
-# ---------------------------------------------------------------------------
-# KeyboardManager: Ctrl+字母 归一化
-# ---------------------------------------------------------------------------
 
 
 class TestKeyboardManagerHotkeyNormalization:
@@ -455,7 +423,6 @@ class TestKeyboardManagerHotkeyNormalization:
         FakeKeyCode, _ = self._patch_keyboard_types(monkeypatch, listeners_module)
         km = listeners_module.KeyboardManager.__new__(listeners_module.KeyboardManager)
 
-        # Ctrl+K 在某些平台会上报为 \x0b
         assert km._get_key_name(FakeKeyCode(char="\x0b")) == "k"
         assert km._normalize_key_name("k") == "k"
 
@@ -472,7 +439,7 @@ class TestKeyboardManagerHotkeyNormalization:
         )
 
         km.on_press(FakeKey("ctrl_l"))
-        km.on_press(FakeKeyCode(vk=75))  # 'K'
+        km.on_press(FakeKeyCode(vk=75))
 
         assert pressed_events[-1][0] == "k"
         assert {"ctrl", "k"}.issubset(pressed_events[-1][1])
@@ -553,7 +520,6 @@ class TestKeyboardManagerHotkeyNormalizationPureMock:
         monkeypatch.delitem(sys.modules, "FlowScroll.input.listeners", raising=False)
 
         module = importlib.import_module("FlowScroll.input.listeners")
-        # Ensure this injected module does not leak into other tests.
         monkeypatch.setitem(sys.modules, "FlowScroll.input.listeners", module)
         return module, FakeKeyCode, FakeKey
 

@@ -1,7 +1,9 @@
-import urllib.request
 import json
-from FlowScroll.services.logging_service import logger
+import urllib.request
+
 from packaging.version import InvalidVersion, Version
+
+from FlowScroll.services.logging_service import logger
 
 try:
     from PySide6.QtCore import QThread, Signal
@@ -78,7 +80,7 @@ class UpdateCheckerThread(QThread):
     update_available = Signal(str, str)  # version, url
 
     def run(self):
-        # 优先 GitHub，失败则回退 Gitee
+        # 优先 GitHub，失败则回退 Gitee。
         for name, fetcher in [("GitHub", _fetch_github), ("Gitee", _fetch_gitee)]:
             try:
                 version, html_url = fetcher()

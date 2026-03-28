@@ -7,6 +7,7 @@ from FlowScroll.constants import (
     CONFIG_VERSION,
     DEFAULT_INERTIA_FRICTION_MS,
     DEFAULT_INERTIA_THRESHOLD,
+    WINDOW_INFO_FAILURE_STALE_THRESHOLD,
 )
 
 CONFIG_FILE = os.path.join(os.path.expanduser("~"), ".FlowScroll_config.json")
@@ -95,17 +96,21 @@ DEFAULT_PRESET_NAME = "长文档/表格"
 
 @dataclass
 class RuntimeState:
-    """运行时状态，不持久化，进程生命周期内有效。"""
+    """运行时状态，不持久化，仅在当前进程生命周期内有效。"""
 
     active: bool = False
     origin_pos: Tuple[int, int] = (0, 0)
     current_window_name: str = ""
     current_process_name: str = ""
     process_name_status: str = "unknown"
-    process_name_available: bool = False
     last_match_target: str = ""
     current_window_class: str = ""
     is_fullscreen: bool = False
+    window_info_failure_count: int = 0
+
+    @property
+    def window_info_is_stale(self) -> bool:
+        return self.window_info_failure_count >= WINDOW_INFO_FAILURE_STALE_THRESHOLD
 
 
 class GlobalConfig:
@@ -115,9 +120,6 @@ class GlobalConfig:
     """
 
     def __init__(self):
-        # ==========================================
-        # 持久化用户配置 (默认值 = 长文档/表格 预设)
-        # ==========================================
         self.config_version = CONFIG_VERSION
 
         defaults = BUILTIN_PRESETS[DEFAULT_PRESET_NAME]
@@ -145,16 +147,10 @@ class GlobalConfig:
         self.disable_fullscreen = True
         self.disable_desktop = True
 
-        # ==========================================
-        # 惯性滚动配置
-        # ==========================================
         self.enable_inertia = False
         self.inertia_friction_ms = DEFAULT_INERTIA_FRICTION_MS
         self.inertia_threshold = DEFAULT_INERTIA_THRESHOLD
 
-        # ==========================================
-        # WebDAV 连接信息 (非敏感)
-        # ==========================================
         self.webdav_url = ""
         self.webdav_username = ""
 
@@ -190,7 +186,7 @@ class GlobalConfig:
         }
 
     def to_dict_for_sync(self) -> dict:
-        """生成用于 WebDAV 同步的配置字典，不包含 WebDAV 凭据"""
+        """生成用于 WebDAV 同步的配置字典，不包含 WebDAV 凭据。"""
         return {
             "config_version": self.config_version,
             "sensitivity": self.sensitivity,
@@ -265,13 +261,13 @@ class GlobalConfig:
         self.inertia_friction_ms = data.get("inertia_friction_ms", 500)
         self.inertia_threshold = data.get("inertia_threshold", 80.0)
 
-
     def _get_active_filter_list(self):
         if self.filter_mode == 1:
             return list(self.filter_blacklist)
         if self.filter_mode == 2:
             return list(self.filter_whitelist)
         return []
+
 
 cfg = GlobalConfig()
 runtime = RuntimeState()

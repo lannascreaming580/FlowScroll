@@ -24,8 +24,23 @@ class PresetManager:
             try:
                 with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                self.presets = data.get("presets", {})
+
+                if not isinstance(data, dict):
+                    raise ValueError("Preset config root must be a JSON object")
+
+                presets = data.get("presets", {})
+                if not isinstance(presets, dict):
+                    raise ValueError("Preset config 'presets' must be an object")
+
                 last_used = data.get("last_used", DEFAULT_PRESET_NAME)
+                if not isinstance(last_used, str):
+                    raise ValueError("Preset config 'last_used' must be a string")
+
+                self.presets = {
+                    str(name): value
+                    for name, value in presets.items()
+                    if isinstance(name, str) and isinstance(value, dict)
+                }
 
                 if last_used in BUILTIN_PRESETS:
                     self.current_preset_name = last_used
@@ -34,6 +49,7 @@ class PresetManager:
                     self.current_preset_name = last_used
                     cfg.from_dict(self.presets[last_used])
                 else:
+                    self.presets = {}
                     self.current_preset_name = DEFAULT_PRESET_NAME
                     cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
                 return

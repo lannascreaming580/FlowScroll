@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.6.3
+
+> 稳定版发布：本版本对应当前本地发布提交，`main` 分支后续可继续前进。
 
 ### Changed
 - `main` 分支版本切换为开发中标识，稳定版本以 Release / Git tag 为准
