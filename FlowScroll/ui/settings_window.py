@@ -83,6 +83,8 @@ class MainWindow(QMainWindow):
         self.ui_widgets = {}
         self.ui_text_widgets = {}
         self.github_url = "https://github.com/CyrilPeng/FlowScroll"
+        self.latest_release_version = None
+        self.update_badge_mode = "hidden"
 
         self.preset_manager.load_from_file()
 
@@ -124,10 +126,15 @@ class MainWindow(QMainWindow):
         self.update_checker.start()
 
     def on_update_available(self, latest_version, html_url):
-        if is_newer_version(latest_version, self.current_version):
-            self.github_url = html_url
-            if hasattr(self, "btn_new_badge"):
-                self.btn_new_badge.setVisible(True)
+        self.latest_release_version = latest_version
+        self.github_url = html_url
+        if is_prerelease_version(self.current_version):
+            self.update_badge_mode = "dev"
+        elif is_newer_version(latest_version, self.current_version):
+            self.update_badge_mode = "update"
+        else:
+            self.update_badge_mode = "hidden"
+        self._refresh_update_indicator()
 
     def save_presets_to_file(self):
         self.preset_manager.save_to_file()
@@ -301,6 +308,41 @@ class MainWindow(QMainWindow):
         self.tab_widget.blockSignals(False)
         self.update_tab_height(self.tab_widget.currentIndex())
         self.sync_ui_from_config()
+        self._refresh_update_indicator()
+
+    def _refresh_update_indicator(self):
+        if not hasattr(self, "btn_new_badge") or not hasattr(self, "btn_github"):
+            return
+
+        if self.update_badge_mode == "dev":
+            self.btn_new_badge.setText(tr("main.update.dev_badge"))
+            self.btn_new_badge.setToolTip(
+                tr(
+                    "main.update.dev_tooltip",
+                    version=self.latest_release_version or tr("main.update.unknown"),
+                )
+            )
+            self.btn_new_badge.setVisible(True)
+            self.btn_github.setText(
+                f" {tr('tab.author_dev', version=self.latest_release_version or tr('main.update.unknown'))}"
+            )
+            return
+
+        if self.update_badge_mode == "update":
+            self.btn_new_badge.setText(tr("main.update.release_badge"))
+            self.btn_new_badge.setToolTip(
+                tr(
+                    "main.update.release_tooltip",
+                    version=self.latest_release_version or tr("main.update.unknown"),
+                )
+            )
+            self.btn_new_badge.setVisible(True)
+            self.btn_github.setText(f" {tr('tab.author')}")
+            return
+
+        self.btn_new_badge.setVisible(False)
+        self.btn_new_badge.setToolTip("")
+        self.btn_github.setText(f" {tr('tab.author')}")
 
     def retranslate_ui(self):
         self.setWindowTitle(f"FlowScroll v{self.version_label}")
