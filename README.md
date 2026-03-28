@@ -10,8 +10,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)]()
-
-**Current Version: v1.5.1**
+[![Current Version](https://img.shields.io/badge/Current%20Version-v1.5.1-2563EB.svg)]()
 
 </div>
 
