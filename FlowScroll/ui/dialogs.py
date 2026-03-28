@@ -279,14 +279,14 @@ class AppFilterDialog(QDialog):
         layout.addWidget(subtitle)
 
         with STATE_LOCK:
-            process_name_available = runtime.process_name_available
+            process_name_status = runtime.process_name_status
 
         self.process_name_warning = QLabel(tr("dialog.filter.process_name_unavailable"))
         self.process_name_warning.setWordWrap(True)
         self.process_name_warning.setStyleSheet(
             'color: #FCA5A5; background: rgba(127, 29, 29, 0.28); border: 1px solid rgba(252, 165, 165, 0.35); border-radius: 10px; padding: 10px 12px;'
         )
-        self.process_name_warning.setVisible(not process_name_available)
+        self.process_name_warning.setVisible(process_name_status == "unavailable")
         layout.addWidget(self.process_name_warning)
 
         mode_card, mode_layout = create_card()

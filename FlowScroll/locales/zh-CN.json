@@ -18,6 +18,8 @@
   "main.settings_failed.body": "权限不足或路径错误。",
   "main.permission_denied.title": "权限不足",
   "main.permission_denied.body": "无法启动全局输入拦截服务。",
+  "main.keyboard_hook_failed.title": "键盘热键不可用",
+  "main.keyboard_hook_failed.body": "键盘监听启动失败，键盘热键将不可用；鼠标触发仍可继续使用。",
   "main.preset.save_title": "保存预设",
   "main.preset.save_prompt": "请输入预设名称：",
   "main.preset.builtin_warning_title": "提示",
@@ -131,5 +133,5 @@
   "main.scroll_engine_failed.title": "滚动引擎启动失败",
   "main.scroll_engine_failed.body": "无法启动滚动引擎，本次会话将无法输出滚动动作。",
   "dialog.filter.process_name_unavailable_title": "无法识别进程名",
-  "dialog.filter.process_name_unavailable": "当前环境无法识别进程名，因此规则暂时不生效。FlowScroll 会对当前前台应用回退为窗口标题匹配。"
+  "dialog.filter.process_name_unavailable": "当前环境无法识别进程名，FlowScroll 将对当前前台应用回退为窗口标题匹配。"
 }

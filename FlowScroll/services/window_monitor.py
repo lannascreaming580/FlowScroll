@@ -23,6 +23,9 @@ class WindowMonitor(threading.Thread):
                 with STATE_LOCK:
                     runtime.current_window_name = window_name
                     runtime.current_process_name = process_name
+                    runtime.process_name_status = (
+                        "available" if process_name else "unavailable"
+                    )
                     runtime.process_name_available = bool(process_name)
                     runtime.current_window_class = cls_name
                     runtime.is_fullscreen = is_fullscreen

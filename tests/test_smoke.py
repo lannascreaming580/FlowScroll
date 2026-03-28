@@ -89,6 +89,7 @@ class TestRuntimeState:
         assert r.origin_pos == (0, 0)
         assert r.current_window_name == ""
         assert r.current_process_name == ""
+        assert r.process_name_status == "unknown"
         assert r.process_name_available is False
         assert r.is_fullscreen is False
 
@@ -247,6 +248,7 @@ class TestRules:
         cfg.filter_blacklist = ["potplayer", "vlc"]
         cfg.filter_whitelist = []
         runtime.current_process_name = "potplayer"
+        runtime.process_name_status = "available"
         runtime.process_name_available = True
         runtime.is_fullscreen = False
         assert is_current_app_allowed() is False
@@ -264,10 +266,12 @@ class TestRules:
         runtime.is_fullscreen = False
 
         runtime.current_process_name = "chrome"
+        runtime.process_name_status = "available"
         runtime.process_name_available = True
         assert is_current_app_allowed() is True
 
         runtime.current_process_name = "potplayer"
+        runtime.process_name_status = "available"
         runtime.process_name_available = True
         assert is_current_app_allowed() is False
 
@@ -279,6 +283,7 @@ class TestRules:
         cfg.filter_blacklist = ["chrome"]
         cfg.filter_whitelist = []
         runtime.current_process_name = ""
+        runtime.process_name_status = "unavailable"
         runtime.process_name_available = False
         runtime.current_window_name = "Google Chrome"
         runtime.is_fullscreen = False
@@ -293,6 +298,7 @@ class TestRules:
         cfg.filter_blacklist = ["code"]
         cfg.filter_whitelist = []
         runtime.current_process_name = "code"
+        runtime.process_name_status = "available"
         runtime.process_name_available = True
         runtime.current_window_name = "Unrelated Window Title"
         runtime.is_fullscreen = False

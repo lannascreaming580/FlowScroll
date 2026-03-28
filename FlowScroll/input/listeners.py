@@ -81,6 +81,7 @@ class GlobalInputListener:
         self.scroll_engine = scroll_engine
         self.mouse_listener = None
         self.key_manager = None
+        self.keyboard_hook_available = True
         self.last_activation_press_time = 0.0
         self.mouse_hotkey_map = {
             'mouse_middle': mouse.Button.middle,
@@ -289,6 +290,7 @@ class GlobalInputListener:
             self.key_manager = KeyboardManager(self._on_key_press, self._on_key_release)
             self.key_manager.start()
         except Exception as e:
+            self.keyboard_hook_available = False
             logger.error(f'键盘钩子失败: {e}')
 
         kwargs = {'on_click': self.on_click}

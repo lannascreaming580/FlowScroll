@@ -24,7 +24,13 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QMenu
 
 from FlowScroll.platform import system_platform
-from FlowScroll.core.config import STATE_LOCK, cfg, BUILTIN_PRESETS, DEFAULT_PRESET_NAME
+from FlowScroll.core.config import (
+    STATE_LOCK,
+    cfg,
+    runtime,
+    BUILTIN_PRESETS,
+    DEFAULT_PRESET_NAME,
+)
 from FlowScroll.core.engine import ScrollEngine
 from FlowScroll.core.rules import is_current_app_allowed
 from FlowScroll.input.listeners import GlobalInputListener
@@ -91,7 +97,7 @@ class MainWindow(QMainWindow):
 
         self.preset_manager.load_from_file()
 
-        # 纭繚绐楀彛鍥炬爣宸茬粡璁剧疆濂藉啀鍒濆鍖栫郴缁熸墭鐩?
+        # 确保窗口图标已经设置好，再初始化系统托盘。
         if self.windowIcon().isNull() and os.path.exists(resource_path(icon_name)):
             self.setWindowIcon(QIcon(resource_path(icon_name)))
 
@@ -229,7 +235,7 @@ class MainWindow(QMainWindow):
         content_layout.addLayout(header_layout)
         content_layout.addSpacing(10)
 
-        # 寮曞叆澶栭儴甯姪鍑芥暟鍜孴ab鏋勫缓鍣?
+        # 引入外部 Tab 构建函数。
         from FlowScroll.ui.tabs_builder import build_parameter_tab, build_advanced_tab
 
         # --- Tab Widget ---
@@ -448,9 +454,9 @@ class MainWindow(QMainWindow):
         from FlowScroll.ui.dialogs import AppFilterDialog
 
         with STATE_LOCK:
-            process_name_available = runtime.process_name_available
+            process_name_status = runtime.process_name_status
             filter_mode = cfg.filter_mode
-        if filter_mode in (1, 2) and not process_name_available:
+        if filter_mode in (1, 2) and process_name_status == "unavailable":
             QMessageBox.information(
                 self,
                 tr("dialog.filter.process_name_unavailable_title"),
@@ -592,6 +598,12 @@ class MainWindow(QMainWindow):
                 self.bridge, is_current_app_allowed, self.scroller
             )
             self.input_listener.start()
+            if not self.input_listener.keyboard_hook_available:
+                QMessageBox.warning(
+                    self,
+                    tr("main.keyboard_hook_failed.title"),
+                    tr("main.keyboard_hook_failed.body"),
+                )
         except Exception as e:
             logger.error(f"Failed to start GlobalInputListener: {e}")
             if "enable_horizontal" in self.ui_widgets:
