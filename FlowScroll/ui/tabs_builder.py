@@ -186,6 +186,17 @@ def build_advanced_tab(main_window):
 
     adv_card, adv_layout = create_card()
 
+    main_window.input_hook_status_label = QLabel()
+    main_window.input_hook_status_label.setWordWrap(True)
+    main_window.input_hook_status_label.setVisible(False)
+    main_window.input_hook_status_label.setStyleSheet(
+        "color: #FDE68A; background: rgba(120, 53, 15, 0.28); "
+        "border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 10px; "
+        "padding: 10px 12px; line-height: 1.4;"
+    )
+    adv_layout.addWidget(main_window.input_hook_status_label)
+    adv_layout.addWidget(create_h_line())
+
     # --- Horizontal Hotkey Row ---
     row_horizontal = QWidget()
     row_horizontal_layout = QHBoxLayout(row_horizontal)
@@ -217,6 +228,7 @@ def build_advanced_tab(main_window):
         btn_gear.setText("⚙️")
     btn_gear.clicked.connect(main_window.open_hotkey_dialog)
     row_horizontal_layout.addWidget(btn_gear)
+    main_window.ui_widgets["horizontal_hotkey_button"] = btn_gear
 
     adv_layout.addWidget(row_horizontal)
     adv_layout.addWidget(create_h_line())
@@ -300,6 +312,7 @@ def build_advanced_tab(main_window):
         btn_work_mode.setIconSize(QSize(18, 18))
     btn_work_mode.clicked.connect(main_window.open_work_mode_dialog)
     adv_layout.addWidget(btn_work_mode)
+    main_window.ui_widgets["work_mode_button"] = btn_work_mode
 
     btn_app_filter = QPushButton(tr("tab.advanced.filter_mode_btn"))
     btn_app_filter.setObjectName("BtnAdv")
@@ -310,6 +323,7 @@ def build_advanced_tab(main_window):
         btn_app_filter.setIconSize(QSize(18, 18))
     btn_app_filter.clicked.connect(main_window.open_filter_mode_dialog)
     adv_layout.addWidget(btn_app_filter)
+    main_window.ui_widgets["filter_mode_button"] = btn_app_filter
 
     btn_webdav = QPushButton(tr("tab.advanced.webdav_btn"))
     btn_webdav.setObjectName("BtnAdv")
@@ -329,6 +343,7 @@ def build_advanced_tab(main_window):
     adv_layout.addWidget(btn_webdav)
 
     tab2_layout.addWidget(adv_card)
+    main_window.refresh_input_hook_status_ui()
 
     # Add stretch to make content fit height
     tab2_layout.addStretch()

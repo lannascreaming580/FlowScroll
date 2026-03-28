@@ -24,7 +24,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QMenu
 
-from FlowScroll.platform import system_platform
+from FlowScroll.platform import OS_NAME, system_platform
 from FlowScroll.core.config import (
     STATE_LOCK,
     cfg,
@@ -135,6 +135,56 @@ class MainWindow(QMainWindow):
         self.update_checker = UpdateCheckerThread(self)
         self.update_checker.update_available.connect(self.on_update_available)
         self.update_checker.start()
+
+    def _get_input_hook_failure_detail(self):
+        if OS_NAME == "Darwin":
+            return tr("main.input_hook_failure_detail.macos")
+
+        if OS_NAME == "Windows":
+            return tr("main.input_hook_failure_detail.windows")
+
+        session_type = os.environ.get("XDG_SESSION_TYPE", "").strip().lower()
+        has_wayland = bool(os.environ.get("WAYLAND_DISPLAY"))
+        has_x11 = bool(os.environ.get("DISPLAY"))
+
+        if session_type == "wayland" or has_wayland:
+            return tr("main.input_hook_failure_detail.linux_wayland")
+        if session_type == "x11" or has_x11:
+            return tr("main.input_hook_failure_detail.linux_x11")
+        if OS_NAME == "Linux":
+            return tr("main.input_hook_failure_detail.linux_generic")
+
+        return tr("main.input_hook_failure_detail.generic")
+
+    def refresh_input_hook_status_ui(self):
+        keyboard_ok = getattr(self, "keyboard_hook_available", True)
+        mouse_ok = getattr(self, "mouse_hook_available", True)
+
+        if hasattr(self, "input_hook_status_label"):
+            if keyboard_ok and mouse_ok:
+                self.input_hook_status_label.setVisible(False)
+                self.input_hook_status_label.setText("")
+            else:
+                if keyboard_ok and not mouse_ok:
+                    text = tr("main.input_status.mouse_only_degraded")
+                elif mouse_ok and not keyboard_ok:
+                    text = tr("main.input_status.keyboard_only_degraded")
+                else:
+                    text = tr("main.input_status.all_unavailable")
+                self.input_hook_status_label.setText(
+                    f"{text}\n\n{self._get_input_hook_failure_detail()}"
+                )
+                self.input_hook_status_label.setVisible(True)
+
+        disable_input_controls = not keyboard_ok and not mouse_ok
+        for key in (
+            "enable_horizontal",
+            "horizontal_hotkey_button",
+            "work_mode_button",
+        ):
+            widget = self.ui_widgets.get(key)
+            if widget is not None:
+                widget.setEnabled(not disable_input_controls)
 
     def on_update_available(self, latest_version, html_url):
         self.latest_release_version = latest_version
@@ -362,6 +412,7 @@ class MainWindow(QMainWindow):
         self.tray_manager.retranslate_ui()
         self._build_language_menu()
         self._rebuild_tabs()
+        self.refresh_input_hook_status_ui()
 
     def update_hotkey_label(self):
         if cfg.horizontal_hotkey:
@@ -604,6 +655,8 @@ class MainWindow(QMainWindow):
         self.window_monitor = None
         self.scroller = None
         self.input_listener = None
+        self.keyboard_hook_available = True
+        self.mouse_hook_available = True
 
         try:
             self.window_monitor = WindowMonitor()
@@ -627,14 +680,30 @@ class MainWindow(QMainWindow):
                 self.bridge, is_current_app_allowed, self.scroller
             )
             self.input_listener.start()
+            self.keyboard_hook_available = self.input_listener.keyboard_hook_available
+            self.mouse_hook_available = self.input_listener.mouse_hook_available
             if not self.input_listener.keyboard_hook_available:
                 QMessageBox.warning(
                     self,
                     tr("main.keyboard_hook_failed.title"),
-                    tr("main.keyboard_hook_failed.body"),
+                    tr(
+                        "main.keyboard_hook_failed.body",
+                        detail=self._get_input_hook_failure_detail(),
+                    ),
+                )
+            if not self.input_listener.mouse_hook_available:
+                QMessageBox.warning(
+                    self,
+                    tr("main.mouse_hook_failed.title"),
+                    tr(
+                        "main.mouse_hook_failed.body",
+                        detail=self._get_input_hook_failure_detail(),
+                    ),
                 )
         except Exception as e:
             logger.error(f"Failed to start GlobalInputListener: {e}")
+            self.keyboard_hook_available = False
+            self.mouse_hook_available = False
             if "enable_horizontal" in self.ui_widgets:
                 self.ui_widgets["enable_horizontal"].setChecked(False)
             QMessageBox.critical(
@@ -642,3 +711,4 @@ class MainWindow(QMainWindow):
                 tr("main.permission_denied.title"),
                 tr("main.permission_denied.body"),
             )
+        self.refresh_input_hook_status_ui()

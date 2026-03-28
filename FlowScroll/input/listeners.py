@@ -82,6 +82,7 @@ class GlobalInputListener:
         self.mouse_listener = None
         self.key_manager = None
         self.keyboard_hook_available = True
+        self.mouse_hook_available = True
         self.last_activation_press_time = 0.0
         self.mouse_hotkey_map = {
             'mouse_middle': mouse.Button.middle,
@@ -299,8 +300,12 @@ class GlobalInputListener:
         if platform.system() == 'Windows':
             kwargs['win32_event_filter'] = self.win32_event_filter
 
-        self.mouse_listener = mouse.Listener(**kwargs)
-        self.mouse_listener.start()
+        try:
+            self.mouse_listener = mouse.Listener(**kwargs)
+            self.mouse_listener.start()
+        except Exception as e:
+            self.mouse_hook_available = False
+            logger.error(f'鼠标钩子失败: {e}')
 
     def win32_event_filter(self, msg, _data):
         # WM_MBUTTONDOWN = 0x0207, WM_MBUTTONUP = 0x0208, WM_MBUTTONDBLCLK = 0x0209

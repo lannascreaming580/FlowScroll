@@ -11,6 +11,7 @@ from FlowScroll.core.hotkeys import (
     hotkey_to_display,
     normalize_hotkey_string,
 )
+from FlowScroll.i18n import tr
 
 
 class HotkeyEdit(QKeySequenceEdit):
@@ -31,7 +32,7 @@ class HotkeyEdit(QKeySequenceEdit):
         if not self._placeholder_set:
             editor = self.findChild(QLineEdit)
             if editor is not None:
-                editor.setPlaceholderText("点击输入快捷键")
+                editor.setPlaceholderText(tr("main.hotkey.input_placeholder"))
                 self._placeholder_set = True
 
     def set_hotkey(self, hotkey):
