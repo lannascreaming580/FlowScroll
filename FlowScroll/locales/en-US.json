@@ -145,6 +145,13 @@
   "webdav.saved_notice": "WebDAV settings have been staged. Save the preset in the main window to persist them.",
   "webdav.upload_success": "Configuration uploaded to WebDAV successfully.",
   "webdav.upload_failed_status": "Upload failed. Status code: {status}",
+  "webdav.invalid_url": "The WebDAV URL is invalid. Enter a full http:// or https:// address that points to a writable WebDAV directory.",
+  "webdav.http_error": "WebDAV request failed. Server returned HTTP {status}: {reason}",
+  "webdav.timeout_hint": "The WebDAV connection timed out. Check your network, server status, and whether the WebDAV URL is correct.",
+  "webdav.connection_refused_hint": "The target server refused the connection. This usually means the address or port is wrong, the WebDAV service is not running, or the URL is not the actual WebDAV endpoint.",
+  "webdav.name_resolution_hint": "The server address could not be resolved. Check the hostname and whether DNS/network access is available.",
+  "webdav.os_error_hint": "Failed to connect to WebDAV: {error}",
+  "webdav.url_error_hint": "Could not access the WebDAV URL: {error}",
   "webdav.connect_failed": "Failed to connect to WebDAV:\n{error}",
   "webdav.download_success": "Configuration downloaded successfully. Restart the app or reload the preset to apply it.",
   "webdav.download_failed": "Download failed. There may be no remote config file yet:\n{error}"

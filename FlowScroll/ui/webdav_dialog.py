@@ -1,6 +1,10 @@
 import base64
 import json
+import socket
+import time
+import urllib.error
 import urllib.request
+from urllib.parse import urlparse
 
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
@@ -22,7 +26,86 @@ from FlowScroll.constants import (
 from FlowScroll.core.config import CONFIG_FILE, cfg
 from FlowScroll.i18n import tr
 from FlowScroll.services.credential_service import credential_service
+from FlowScroll.services.logging_service import logger
 from FlowScroll.ui.styles import get_webdav_dialog_style
+
+
+WEBDAV_LOG_FIELD_ORDER = (
+    "event",
+    "mode",
+    "url",
+    "username",
+    "status",
+    "reason",
+    "error",
+    "duration_ms",
+)
+
+
+def mask_webdav_username(username: str) -> str:
+    value = (username or "").strip()
+    if not value:
+        return "<empty>"
+    if len(value) <= 2:
+        return value[0] + "*"
+    if len(value) == 3:
+        return value[0] + "*" + value[-1]
+    return value[:2] + "*" * (len(value) - 3) + value[-1]
+
+
+def log_webdav_event(level: str, event: str, **fields) -> None:
+    normalized_fields = {"event": event, **fields}
+    parts = []
+    for key in WEBDAV_LOG_FIELD_ORDER:
+        value = normalized_fields.pop(key, None)
+        if value is None:
+            continue
+        text = str(value).replace("\n", "\\n")
+        parts.append(f"{key}={text}")
+    for key, value in normalized_fields.items():
+        if value is None:
+            continue
+        text = str(value).replace("\n", "\\n")
+        parts.append(f"{key}={text}")
+    message = "WebDAV " + " ".join(parts)
+    getattr(logger, level)(message)
+
+
+def validate_webdav_url(url: str) -> str | None:
+    parsed = urlparse(url.strip())
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        return tr("webdav.invalid_url")
+    return None
+
+
+def format_webdav_error(error: Exception) -> str:
+    if isinstance(error, urllib.error.HTTPError):
+        return tr(
+            "webdav.http_error",
+            status=error.code,
+            reason=error.reason or error.__class__.__name__,
+        )
+
+    if isinstance(error, urllib.error.URLError):
+        reason = error.reason
+        if isinstance(reason, TimeoutError | socket.timeout):
+            return tr("webdav.timeout_hint")
+
+        winerror = getattr(reason, "winerror", None)
+        if winerror == 10061:
+            return tr("webdav.connection_refused_hint")
+
+        if isinstance(reason, OSError):
+            if reason.errno in (-2, 11001):
+                return tr("webdav.name_resolution_hint")
+            return tr("webdav.os_error_hint", error=str(reason))
+
+        return tr("webdav.url_error_hint", error=str(reason))
+
+    if isinstance(error, TimeoutError | socket.timeout):
+        return tr("webdav.timeout_hint")
+
+    return str(error)
 
 
 class WebDAVJobThread(QThread):
@@ -30,14 +113,23 @@ class WebDAVJobThread(QThread):
     download_finished = Signal(dict)
     failed = Signal(str)
 
-    def __init__(self, mode: str, url: str, auth: str, payload: dict | None = None):
+    def __init__(
+        self,
+        mode: str,
+        url: str,
+        auth: str,
+        username: str,
+        payload: dict | None = None,
+    ):
         super().__init__()
         self.mode = mode
         self.url = url
         self.auth = auth
+        self.username = username
         self.payload = payload or {}
 
     def run(self):
+        started_at = time.monotonic()
         try:
             if self.mode == "upload":
                 data = json.dumps(
@@ -56,7 +148,29 @@ class WebDAVJobThread(QThread):
                 remote_data = json.loads(response.read().decode("utf-8"))
             self.download_finished.emit(remote_data)
         except Exception as e:
-            self.failed.emit(str(e))
+            duration_ms = int((time.monotonic() - started_at) * 1000)
+            if isinstance(e, urllib.error.HTTPError):
+                log_webdav_event(
+                    "error",
+                    "failed",
+                    mode=self.mode,
+                    url=self.url,
+                    username=mask_webdav_username(self.username),
+                    status=e.code,
+                    reason=e.reason,
+                    duration_ms=duration_ms,
+                )
+            else:
+                log_webdav_event(
+                    "error",
+                    "failed",
+                    mode=self.mode,
+                    url=self.url,
+                    username=mask_webdav_username(self.username),
+                    error=repr(e),
+                    duration_ms=duration_ms,
+                )
+            self.failed.emit(format_webdav_error(e))
 
 
 class WebDAVSyncDialog(QDialog):
@@ -136,6 +250,9 @@ class WebDAVSyncDialog(QDialog):
         encoded = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
         return f"Basic {encoded}"
 
+    def get_username(self):
+        return self.edit_user.text().strip()
+
     def save_config(self):
         cfg.webdav_url = self.edit_url.text().strip()
         cfg.webdav_username = self.edit_user.text().strip()
@@ -160,21 +277,45 @@ class WebDAVSyncDialog(QDialog):
         self.accept()
 
     def upload_config(self):
+        invalid = validate_webdav_url(self.edit_url.text())
+        if invalid:
+            log_webdav_event(
+                "error",
+                "invalid_url",
+                mode="upload",
+                url=self.edit_url.text().strip(),
+                username=mask_webdav_username(self.get_username()),
+            )
+            QMessageBox.warning(self, tr("webdav.failed_title"), invalid)
+            return
         self._start_job(
             WebDAVJobThread(
                 "upload",
                 self.get_full_url(),
                 self.get_auth_header(),
+                self.get_username(),
                 cfg.to_dict_for_sync(),
             )
         )
 
     def download_config(self):
+        invalid = validate_webdav_url(self.edit_url.text())
+        if invalid:
+            log_webdav_event(
+                "error",
+                "invalid_url",
+                mode="download",
+                url=self.edit_url.text().strip(),
+                username=mask_webdav_username(self.get_username()),
+            )
+            QMessageBox.warning(self, tr("webdav.failed_title"), invalid)
+            return
         self._start_job(
             WebDAVJobThread(
                 "download",
                 self.get_full_url(),
                 self.get_auth_header(),
+                self.get_username(),
             )
         )
 
@@ -204,6 +345,16 @@ class WebDAVSyncDialog(QDialog):
             )
             return
 
+        log_webdav_event(
+            "error",
+            "unexpected_status",
+            mode="upload",
+            url=self._job.url if self._job else "<unknown>",
+            username=mask_webdav_username(
+                self._job.username if self._job else ""
+            ),
+            status=status,
+        )
         QMessageBox.warning(
             self,
             tr("webdav.failed_title"),

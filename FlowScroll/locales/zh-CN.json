@@ -141,6 +141,13 @@
   "webdav.saved_notice": "WebDAV 配置已暂存，请记得在主界面保存预设以持久化。",
   "webdav.upload_success": "配置已成功上传至 WebDAV 云端！",
   "webdav.upload_failed_status": "上传失败，状态码: {status}",
+  "webdav.invalid_url": "WebDAV 链接无效。请输入完整的 http:// 或 https:// 地址，并指向可写入的 WebDAV 目录。",
+  "webdav.http_error": "WebDAV 请求失败，服务器返回 HTTP {status}: {reason}",
+  "webdav.timeout_hint": "连接 WebDAV 超时。请检查网络、服务器状态，或确认填写的是正确的 WebDAV 地址。",
+  "webdav.connection_refused_hint": "目标服务器拒绝连接。通常是地址或端口错误、WebDAV 服务未启动，或你填入的并不是实际的 WebDAV 端点。",
+  "webdav.name_resolution_hint": "无法解析服务器地址。请检查域名是否填写正确，或当前网络/DNS 是否可用。",
+  "webdav.os_error_hint": "连接 WebDAV 失败：{error}",
+  "webdav.url_error_hint": "无法访问 WebDAV 地址：{error}",
   "webdav.connect_failed": "连接 WebDAV 失败:\n{error}",
   "webdav.download_success": "配置已从云端下载成功！重启程序或重新加载预设生效。",
   "webdav.download_failed": "下载配置失败，可能云端尚无配置文件:\n{error}"

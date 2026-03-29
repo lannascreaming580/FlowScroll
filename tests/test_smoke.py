@@ -3,11 +3,13 @@
 import importlib
 import json
 import os
+import socket
 import shutil
 import sys
 import tempfile
 import types
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -707,3 +709,185 @@ class TestLockKeyAliasNormalization:
 
         listener = GlobalInputListener.__new__(GlobalInputListener)
         assert listener._is_keyboard_hotkey_active("capslock", {"caps_lock"}) is True
+
+
+class TestWebDAVErrorFormatting:
+    def test_mask_webdav_username(self):
+        from FlowScroll.ui.webdav_dialog import mask_webdav_username
+
+        assert mask_webdav_username("") == "<empty>"
+        assert mask_webdav_username("a") == "a*"
+        assert mask_webdav_username("bob") == "b*b"
+        assert mask_webdav_username("alice") == "al**e"
+
+    def test_validate_webdav_url_requires_http_scheme(self):
+        from FlowScroll.ui.webdav_dialog import validate_webdav_url
+
+        assert validate_webdav_url("dav.jianguoyun.com/dav/") is not None
+        assert validate_webdav_url("https://dav.jianguoyun.com/dav/") is None
+
+    def test_format_connection_refused_error(self):
+        from FlowScroll.ui.webdav_dialog import format_webdav_error
+
+        err = URLError(ConnectionRefusedError(10061, "actively refused"))
+        message = format_webdav_error(err)
+        assert "refused" in message.lower() or "拒绝" in message
+
+    def test_format_timeout_error(self):
+        from FlowScroll.ui.webdav_dialog import format_webdav_error
+
+        message = format_webdav_error(URLError(socket.timeout("timed out")))
+        assert "timeout" in message.lower() or "超时" in message
+
+    def test_format_http_error(self):
+        from FlowScroll.ui.webdav_dialog import format_webdav_error
+
+        err = HTTPError(
+            url="https://example.com/dav/FlowScroll_config.json",
+            code=401,
+            msg="Unauthorized",
+            hdrs=None,
+            fp=None,
+        )
+        message = format_webdav_error(err)
+        assert "401" in message
+
+    def test_webdav_job_logs_http_error(self, monkeypatch):
+        import FlowScroll.ui.webdav_dialog as webdav_dialog
+
+        logged = []
+
+        class DummyLogger:
+            def info(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def warning(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def error(self, message, *args):
+                logged.append(message % args if args else message)
+
+        def fake_urlopen(_req, timeout=10):
+            raise HTTPError(
+                url="https://example.com/dav/FlowScroll_config.json",
+                code=401,
+                msg="Unauthorized",
+                hdrs=None,
+                fp=None,
+            )
+
+        monkeypatch.setattr(webdav_dialog, "logger", DummyLogger())
+        monkeypatch.setattr(webdav_dialog.urllib.request, "urlopen", fake_urlopen)
+
+        job = webdav_dialog.WebDAVJobThread(
+            "upload",
+            "https://example.com/dav/FlowScroll_config.json",
+            "Basic abc",
+            "alice",
+            {"ok": True},
+        )
+        failures = []
+        job.failed.connect(failures.append)
+
+        job.run()
+
+        assert failures
+        assert any("event=failed" in entry for entry in logged)
+        assert any("mode=upload" in entry for entry in logged)
+        assert any("username=al**e" in entry for entry in logged)
+        assert any("status=401" in entry for entry in logged)
+        assert any(
+            "event=failed mode=upload url=https://example.com/dav/FlowScroll_config.json username=al**e status=401"
+            in entry
+            for entry in logged
+        )
+
+    def test_webdav_job_logs_non_http_error(self, monkeypatch):
+        import FlowScroll.ui.webdav_dialog as webdav_dialog
+
+        logged = []
+
+        class DummyLogger:
+            def info(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def warning(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def error(self, message, *args):
+                logged.append(message % args if args else message)
+
+        def fake_urlopen(_req, timeout=10):
+            raise URLError(ConnectionRefusedError(10061, "actively refused"))
+
+        monkeypatch.setattr(webdav_dialog, "logger", DummyLogger())
+        monkeypatch.setattr(webdav_dialog.urllib.request, "urlopen", fake_urlopen)
+
+        job = webdav_dialog.WebDAVJobThread(
+            "download",
+            "https://example.com/dav/FlowScroll_config.json",
+            "Basic abc",
+            "bob",
+        )
+        failures = []
+        job.failed.connect(failures.append)
+
+        job.run()
+
+        assert failures
+        assert any("event=failed" in entry for entry in logged)
+        assert any("mode=download" in entry for entry in logged)
+        assert any("username=b*b" in entry for entry in logged)
+        assert any("url=https://example.com/dav/FlowScroll_config.json" in entry for entry in logged)
+
+    def test_webdav_job_logs_start_finish_and_duration(self, monkeypatch):
+        import FlowScroll.ui.webdav_dialog as webdav_dialog
+
+        logged = []
+
+        class DummyLogger:
+            def info(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def warning(self, message, *args):
+                logged.append(message % args if args else message)
+
+            def error(self, message, *args):
+                logged.append(message % args if args else message)
+
+        class DummyResponse:
+            status = 204
+
+            def read(self):
+                return b"{}"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        times = iter([100.0, 100.25])
+
+        monkeypatch.setattr(webdav_dialog, "logger", DummyLogger())
+        monkeypatch.setattr(webdav_dialog.time, "monotonic", lambda: next(times))
+        monkeypatch.setattr(
+            webdav_dialog.urllib.request,
+            "urlopen",
+            lambda _req, timeout=10: DummyResponse(),
+        )
+
+        job = webdav_dialog.WebDAVJobThread(
+            "upload",
+            "https://example.com/dav/FlowScroll_config.json",
+            "Basic abc",
+            "alice",
+            {"ok": True},
+        )
+        statuses = []
+        job.upload_finished.connect(statuses.append)
+
+        job.run()
+
+        assert statuses == [204]
+        assert logged == []
