@@ -18,6 +18,13 @@ class PresetManager:
         self.presets: Dict[str, dict] = {}
         self.current_preset_name: str = DEFAULT_PRESET_NAME
 
+    def _serialize_state(self) -> dict:
+        return {
+            "presets": self.presets,
+            "last_used": self.current_preset_name,
+            "current_config": cfg.to_dict(),
+        }
+
     def load_from_file(self) -> None:
         """从配置文件加载预设。"""
         if os.path.exists(CONFIG_FILE):
@@ -36,13 +43,24 @@ class PresetManager:
                 if not isinstance(last_used, str):
                     raise ValueError("Preset config 'last_used' must be a string")
 
+                current_config = data.get("current_config")
+                if current_config is not None and not isinstance(current_config, dict):
+                    raise ValueError("Preset config 'current_config' must be an object")
+
                 self.presets = {
                     str(name): value
                     for name, value in presets.items()
                     if isinstance(name, str) and isinstance(value, dict)
                 }
 
-                if last_used in BUILTIN_PRESETS:
+                if current_config is not None:
+                    self.current_preset_name = (
+                        last_used
+                        if last_used in BUILTIN_PRESETS or last_used in self.presets
+                        else DEFAULT_PRESET_NAME
+                    )
+                    cfg.from_dict(current_config)
+                elif last_used in BUILTIN_PRESETS:
                     self.current_preset_name = last_used
                     cfg.from_dict(BUILTIN_PRESETS[last_used])
                 elif last_used in self.presets:
@@ -62,7 +80,7 @@ class PresetManager:
 
     def save_to_file(self) -> None:
         """保存预设到配置文件。"""
-        data = {"presets": self.presets, "last_used": self.current_preset_name}
+        data = self._serialize_state()
         try:
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)

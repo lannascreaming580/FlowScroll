@@ -168,6 +168,64 @@ class TestPresetManager:
         finally:
             os.unlink(path)
 
+    def test_save_includes_current_config(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.core.config import cfg
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config({"presets": {}, "last_used": config_module.DEFAULT_PRESET_NAME})
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            cfg.sensitivity = 4.0
+            cfg.speed_factor = 1.25
+
+            pm = PresetManager()
+            pm.save_to_file()
+
+            with open(path, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+
+            assert saved["current_config"]["sensitivity"] == 4.0
+            assert saved["current_config"]["speed_factor"] == 1.25
+        finally:
+            os.unlink(path)
+
+    def test_load_prefers_current_config_when_present(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config(
+            {
+                "presets": {},
+                "last_used": config_module.DEFAULT_PRESET_NAME,
+                "current_config": {
+                    "sensitivity": 4.5,
+                    "speed_factor": 1.75,
+                    "dead_zone": 12.0,
+                    "overlay_size": 50.0,
+                    "enable_horizontal": False,
+                },
+            }
+        )
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+
+            pm.load_from_file()
+
+            assert pm.current_preset_name == config_module.DEFAULT_PRESET_NAME
+            assert config_module.cfg.sensitivity == 4.5
+            assert config_module.cfg.speed_factor == 1.75
+            assert config_module.cfg.enable_horizontal is False
+        finally:
+            os.unlink(path)
+
     def test_invalid_preset_structure_falls_back_to_defaults(self, monkeypatch):
         import FlowScroll.core.config as config_module
         import FlowScroll.ui.preset_manager as pm_module

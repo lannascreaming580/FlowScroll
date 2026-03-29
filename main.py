@@ -57,6 +57,8 @@ def main():
 
         window = MainWindow()
         single_instance.activation_requested.connect(window.show_normal_window)
+        if single_instance.pending_activation_request:
+            window.show_normal_window()
         window.show()
 
         sys.exit(app.exec())

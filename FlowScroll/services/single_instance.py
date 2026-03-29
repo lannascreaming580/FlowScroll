@@ -14,6 +14,7 @@ class SingleInstanceManager(QObject):
         super().__init__(parent)
         self.server_name = self._build_server_name(app_id)
         self.server = None
+        self.pending_activation_request = False
 
     @staticmethod
     def _build_server_name(app_id: str) -> str:
@@ -64,9 +65,12 @@ class SingleInstanceManager(QObject):
             socket = self.server.nextPendingConnection()
             socket.readyRead.connect(lambda s=socket: self._process_message(s))
             socket.disconnected.connect(socket.deleteLater)
+            if socket.bytesAvailable():
+                self._process_message(socket)
 
     def _process_message(self, socket) -> None:
         payload = bytes(socket.readAll()).decode("utf-8", errors="ignore").strip()
         if payload == "show":
+            self.pending_activation_request = True
             self.activation_requested.emit()
-
+        socket.disconnectFromServer()

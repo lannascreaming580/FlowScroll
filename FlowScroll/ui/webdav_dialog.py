@@ -2,7 +2,7 @@ import base64
 import json
 import urllib.request
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -23,6 +23,40 @@ from FlowScroll.core.config import CONFIG_FILE, cfg
 from FlowScroll.i18n import tr
 from FlowScroll.services.credential_service import credential_service
 from FlowScroll.ui.styles import get_webdav_dialog_style
+
+
+class WebDAVJobThread(QThread):
+    upload_finished = Signal(int)
+    download_finished = Signal(dict)
+    failed = Signal(str)
+
+    def __init__(self, mode: str, url: str, auth: str, payload: dict | None = None):
+        super().__init__()
+        self.mode = mode
+        self.url = url
+        self.auth = auth
+        self.payload = payload or {}
+
+    def run(self):
+        try:
+            if self.mode == "upload":
+                data = json.dumps(
+                    self.payload, ensure_ascii=False, indent=4
+                ).encode("utf-8")
+                req = urllib.request.Request(self.url, data=data, method="PUT")
+                req.add_header("Authorization", self.auth)
+                req.add_header("Content-Type", "application/json")
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    self.upload_finished.emit(int(response.status))
+                return
+
+            req = urllib.request.Request(self.url, method="GET")
+            req.add_header("Authorization", self.auth)
+            with urllib.request.urlopen(req, timeout=10) as response:
+                remote_data = json.loads(response.read().decode("utf-8"))
+            self.download_finished.emit(remote_data)
+        except Exception as e:
+            self.failed.emit(str(e))
 
 
 class WebDAVSyncDialog(QDialog):
@@ -64,16 +98,19 @@ class WebDAVSyncDialog(QDialog):
 
         btn_save = QPushButton(tr("webdav.save"))
         btn_save.clicked.connect(self.save_config)
+        self.btn_save = btn_save
 
         btn_upload = QPushButton(tr("webdav.upload"))
         btn_upload.setObjectName("BtnPrimary")
         btn_upload.setCursor(Qt.PointingHandCursor)
         btn_upload.clicked.connect(self.upload_config)
+        self.btn_upload = btn_upload
 
         btn_download = QPushButton(tr("webdav.download"))
         btn_download.setObjectName("BtnSuccess")
         btn_download.setCursor(Qt.PointingHandCursor)
         btn_download.clicked.connect(self.download_config)
+        self.btn_download = btn_download
 
         btn_layout.addWidget(btn_save)
         btn_layout.addWidget(btn_upload)
@@ -84,6 +121,7 @@ class WebDAVSyncDialog(QDialog):
 
         adaptive_height = max(WEBDAV_DIALOG_DEFAULT_HEIGHT, self.sizeHint().height())
         self.resize(WEBDAV_DIALOG_DEFAULT_WIDTH, adaptive_height)
+        self._job = None
 
     def get_full_url(self):
         url = self.edit_url.text().strip()
@@ -122,67 +160,100 @@ class WebDAVSyncDialog(QDialog):
         self.accept()
 
     def upload_config(self):
-        url = self.get_full_url()
-        auth = self.get_auth_header()
-
-        try:
-            sync_data = cfg.to_dict_for_sync()
-            data = json.dumps(sync_data, ensure_ascii=False, indent=4).encode("utf-8")
-
-            req = urllib.request.Request(url, data=data, method="PUT")
-            req.add_header("Authorization", auth)
-            req.add_header("Content-Type", "application/json")
-
-            with urllib.request.urlopen(req) as response:
-                if response.status in (200, 201, 204):
-                    QMessageBox.information(
-                        self,
-                        tr("webdav.success_title"),
-                        tr("webdav.upload_success"),
-                    )
-                else:
-                    QMessageBox.warning(
-                        self,
-                        tr("webdav.failed_title"),
-                        tr("webdav.upload_failed_status", status=response.status),
-                    )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                tr("webdav.error_title"),
-                tr("webdav.connect_failed", error=str(e)),
+        self._start_job(
+            WebDAVJobThread(
+                "upload",
+                self.get_full_url(),
+                self.get_auth_header(),
+                cfg.to_dict_for_sync(),
             )
+        )
 
     def download_config(self):
-        url = self.get_full_url()
-        auth = self.get_auth_header()
+        self._start_job(
+            WebDAVJobThread(
+                "download",
+                self.get_full_url(),
+                self.get_auth_header(),
+            )
+        )
 
-        try:
-            req = urllib.request.Request(url, method="GET")
-            req.add_header("Authorization", auth)
+    def _set_busy(self, busy: bool):
+        self.btn_save.setEnabled(not busy)
+        self.btn_upload.setEnabled(not busy)
+        self.btn_download.setEnabled(not busy)
 
-            with urllib.request.urlopen(req) as response:
-                remote_data = json.loads(response.read().decode("utf-8"))
+    def _start_job(self, job: WebDAVJobThread):
+        if self._job is not None:
+            return
 
-            local_webdav_url = cfg.webdav_url
-            local_webdav_username = cfg.webdav_username
+        self._job = job
+        self._set_busy(True)
+        job.upload_finished.connect(self._on_upload_finished)
+        job.download_finished.connect(self._on_download_finished)
+        job.failed.connect(self._on_job_failed)
+        job.finished.connect(self._on_job_complete)
+        job.start()
 
-            cfg.from_dict(remote_data)
-
-            cfg.webdav_url = local_webdav_url
-            cfg.webdav_username = local_webdav_username
-
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(cfg.to_dict(), f, ensure_ascii=False, indent=4)
-
+    def _on_upload_finished(self, status: int):
+        if status in (200, 201, 204):
             QMessageBox.information(
                 self,
                 tr("webdav.success_title"),
-                tr("webdav.download_success"),
+                tr("webdav.upload_success"),
             )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                tr("webdav.error_title"),
-                tr("webdav.download_failed", error=str(e)),
-            )
+            return
+
+        QMessageBox.warning(
+            self,
+            tr("webdav.failed_title"),
+            tr("webdav.upload_failed_status", status=status),
+        )
+
+    def _on_download_finished(self, remote_data: dict):
+        local_webdav_url = cfg.webdav_url
+        local_webdav_username = cfg.webdav_username
+
+        cfg.from_dict(remote_data)
+        cfg.webdav_url = local_webdav_url
+        cfg.webdav_username = local_webdav_username
+
+        parent = self.parent()
+        if parent is not None and hasattr(parent, "save_presets_to_file"):
+            parent.save_presets_to_file()
+        else:
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "presets": {},
+                        "last_used": "",
+                        "current_config": cfg.to_dict(),
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=4,
+                )
+
+        QMessageBox.information(
+            self,
+            tr("webdav.success_title"),
+            tr("webdav.download_success"),
+        )
+
+    def _on_job_failed(self, error: str):
+        message_key = (
+            "webdav.connect_failed"
+            if self._job and self._job.mode == "upload"
+            else "webdav.download_failed"
+        )
+        QMessageBox.critical(
+            self,
+            tr("webdav.error_title"),
+            tr(message_key, error=error),
+        )
+
+    def _on_job_complete(self):
+        if self._job is not None:
+            self._job.deleteLater()
+            self._job = None
+        self._set_busy(False)
