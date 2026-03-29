@@ -230,3 +230,20 @@ uv run python -m pytest tests/ -v
 ## License
 
 GPL-3.0. See [LICENSE](LICENSE).
+
+---
+
+## About The Code
+
+FlowScroll is built with a pragmatic mindset: solve real user problems first, then keep improving the implementation over time.
+
+In this project, the author's role is closer to product design and feature direction. Some parts of the implementation came from rapid iteration, exploratory validation, and AI-assisted generation, so the engineering structure and fine details may not always be ideal.
+
+If you notice weaknesses in the implementation or see room for improvement, issues and pull requests are welcome.
+
+- Feedback with context, reproduction steps, and actionable suggestions is especially useful
+- Constructive discussion about interaction design, compatibility, and code quality is welcome
+- Dismissive criticism without concrete substance does not help the project move forward
+
+FlowScroll is, first of all, a small tool built for real usage scenarios.
+It may not be perfect, but it will keep evolving.
