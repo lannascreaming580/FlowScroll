@@ -18,6 +18,8 @@
   "tray.quit": "Quit",
   "main.settings_failed.title": "Failed",
   "main.settings_failed.body": "Insufficient permission or invalid path.",
+  "main.single_instance.title": "Already Running",
+  "main.single_instance.body": "FlowScroll is already running. The existing window has been brought to the foreground.",
   "main.permission_denied.title": "Permission Required",
   "main.permission_denied.body": "Failed to start global input hook service.",
   "main.keyboard_hook_failed.title": "Keyboard Hotkeys Unavailable",

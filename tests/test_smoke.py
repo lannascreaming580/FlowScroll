@@ -392,6 +392,25 @@ class TestConstants:
         assert CONFIG_VERSION > 0
 
 
+class TestSingleInstanceManager:
+    def test_server_name_is_stable_for_same_app_id(self):
+        from FlowScroll.services.single_instance import SingleInstanceManager
+
+        left = SingleInstanceManager._build_server_name("cyrilpeng.FlowScroll")
+        right = SingleInstanceManager._build_server_name("cyrilpeng.FlowScroll")
+
+        assert left == right
+        assert left.startswith("FlowScroll.")
+
+    def test_server_name_changes_with_app_id(self):
+        from FlowScroll.services.single_instance import SingleInstanceManager
+
+        left = SingleInstanceManager._build_server_name("FlowScroll.A")
+        right = SingleInstanceManager._build_server_name("FlowScroll.B")
+
+        assert left != right
+
+
 class TestKeyboardManagerHotkeyNormalization:
     def _patch_keyboard_types(self, monkeypatch, listeners_module):
         class DummyListener:

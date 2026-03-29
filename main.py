@@ -5,14 +5,26 @@
 
 import sys
 import ctypes
-from PySide6.QtWidgets import QApplication
+import os
+from PySide6.QtWidgets import QApplication, QMessageBox
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 
 from FlowScroll import __version__
+from FlowScroll.i18n import tr
 from FlowScroll.platform import system_platform, OS_NAME
 from FlowScroll.services.logging_service import logger, log_crash
+from FlowScroll.services.single_instance import SingleInstanceManager
+from FlowScroll.ui.utils import resource_path
 from FlowScroll.ui.settings_window import MainWindow
+
+
+def _show_already_running_message():
+    QMessageBox.information(
+        None,
+        tr("main.single_instance.title"),
+        tr("main.single_instance.body"),
+    )
 
 
 def main():
@@ -34,8 +46,17 @@ def main():
 
         font_name = system_platform.get_font_name()
         app.setFont(QFont(font_name, 11 if OS_NAME == "Windows" else 13))
+        icon_path = resource_path(system_platform.get_icon_name())
+        if os.path.exists(icon_path):
+            app.setWindowIcon(QIcon(icon_path))
+
+        single_instance = SingleInstanceManager("cyrilpeng.FlowScroll")
+        if not single_instance.acquire():
+            _show_already_running_message()
+            sys.exit(0)
 
         window = MainWindow()
+        single_instance.activation_requested.connect(window.show_normal_window)
         window.show()
 
         sys.exit(app.exec())

@@ -18,6 +18,8 @@
   "tray.quit": "退出程序",
   "main.settings_failed.title": "设置失败",
   "main.settings_failed.body": "权限不足或路径错误。",
+  "main.single_instance.title": "已经在运行",
+  "main.single_instance.body": "FlowScroll 已经在运行，现有窗口已切换到前台。",
   "main.permission_denied.title": "权限不足",
   "main.permission_denied.body": "无法启动全局输入拦截服务。",
   "main.keyboard_hook_failed.title": "键盘热键不可用",
