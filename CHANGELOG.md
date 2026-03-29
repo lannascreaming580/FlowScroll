@@ -2,6 +2,11 @@
 
 > 2026-03-29 补充记录：全仓 Python 代码注释与部分 docstring 统一整理为中文，并清理多处历史乱码注释，提升维护与协作时的可读性。
 
+## v1.7.3
+
+### Fixed
+- 修复 Linux CI 在缺少 `libEGL.so.1` 的 headless 环境下导入 `webdav_dialog` 和 `tabs_builder` 即失败的问题；将可测试的非 UI 逻辑与 Qt Widgets 依赖解耦，确保 WebDAV 错误格式化与配置持久化相关测试可正常运行
+
 ## v1.7.2
 
 ### Fixed

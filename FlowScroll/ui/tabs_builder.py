@@ -1,25 +1,4 @@
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QCheckBox,
-    QSizePolicy,
-)
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QPainter, QPixmap
-
 from FlowScroll.core.config import cfg
-from FlowScroll.ui.utils import resource_path
-from FlowScroll.ui.helpers import (
-    create_card,
-    create_h_line,
-    add_slider_row,
-    add_toggle_row,
-)
-from FlowScroll.ui.components import UpwardComboBox
-from FlowScroll.ui.styles import get_new_badge_style, get_hotkey_label_style
 import os
 import webbrowser
 
@@ -34,6 +13,22 @@ def _persist_config_change(main_window, attr_name, value, after_change=None):
 
 
 def build_parameter_tab(main_window):
+    from PySide6.QtCore import Qt, QSize
+    from PySide6.QtGui import QIcon
+    from PySide6.QtWidgets import (
+        QWidget,
+        QVBoxLayout,
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QSizePolicy,
+    )
+
+    from FlowScroll.ui.components import UpwardComboBox
+    from FlowScroll.ui.helpers import create_card, create_h_line, add_slider_row
+    from FlowScroll.ui.styles import get_new_badge_style
+    from FlowScroll.ui.utils import resource_path
+
     tab1_widget = QWidget()
     tab1_layout = QVBoxLayout(tab1_widget)
     tab1_layout.setContentsMargins(0, 16, 0, 0)
@@ -189,6 +184,17 @@ def build_parameter_tab(main_window):
 
 
 def build_advanced_tab(main_window):
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import (
+        QWidget,
+        QVBoxLayout,
+        QHBoxLayout,
+        QLabel,
+        QCheckBox,
+    )
+
+    from FlowScroll.ui.helpers import create_card, create_h_line, add_toggle_row
+
     tab2_widget = QWidget()
     tab2_layout = QVBoxLayout(tab2_widget)
     tab2_layout.setContentsMargins(0, 16, 0, 0)
