@@ -1,8 +1,73 @@
 import hashlib
 import os
 
-from PySide6.QtCore import QObject, Signal
-from PySide6.QtNetwork import QLocalServer, QLocalSocket
+try:
+    from PySide6.QtCore import QObject, Signal
+    from PySide6.QtNetwork import QLocalServer, QLocalSocket
+
+    QT_IPC_AVAILABLE = True
+except ModuleNotFoundError:  # pragma: no cover - 用于无 GUI 测试环境
+    QT_IPC_AVAILABLE = False
+
+    class QObject:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+    class Signal:
+        def __init__(self, *_args, **_kwargs):
+            self._callbacks = []
+
+        def connect(self, callback):
+            self._callbacks.append(callback)
+
+        def emit(self, *args, **kwargs):
+            for callback in list(self._callbacks):
+                callback(*args, **kwargs)
+
+    class QLocalServer:
+        def __init__(self, *_args, **_kwargs):
+            self.newConnection = Signal()
+
+        @staticmethod
+        def removeServer(_name):
+            return None
+
+        def listen(self, _name):
+            return False
+
+        def errorString(self):
+            return "QtNetwork unavailable"
+
+        def hasPendingConnections(self):
+            return False
+
+        def nextPendingConnection(self):
+            return None
+
+    class QLocalSocket:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def connectToServer(self, _name):
+            return None
+
+        def waitForConnected(self, _timeout):
+            return False
+
+        def write(self, _payload):
+            return 0
+
+        def flush(self):
+            return None
+
+        def waitForBytesWritten(self, _timeout):
+            return False
+
+        def disconnectFromServer(self):
+            return None
+
+        def waitForDisconnected(self, _timeout):
+            return False
 
 from FlowScroll.services.logging_service import logger
 
@@ -23,6 +88,10 @@ class SingleInstanceManager(QObject):
         return f"FlowScroll.{digest}"
 
     def acquire(self) -> bool:
+        if not QT_IPC_AVAILABLE:
+            logger.info("QtNetwork unavailable; skipping single-instance enforcement")
+            return True
+
         if self.notify_existing_instance():
             return False
 
@@ -44,6 +113,9 @@ class SingleInstanceManager(QObject):
         return True
 
     def notify_existing_instance(self) -> bool:
+        if not QT_IPC_AVAILABLE:
+            return False
+
         socket = QLocalSocket(self)
         socket.connectToServer(self.server_name)
         if not socket.waitForConnected(250):

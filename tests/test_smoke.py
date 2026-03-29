@@ -3,9 +3,11 @@
 import importlib
 import json
 import os
+import shutil
 import sys
 import tempfile
 import types
+from pathlib import Path
 
 import pytest
 
@@ -467,6 +469,69 @@ class TestSingleInstanceManager:
         right = SingleInstanceManager._build_server_name("FlowScroll.B")
 
         assert left != right
+
+    def test_module_imports_without_pyside6(self, monkeypatch):
+        monkeypatch.delitem(sys.modules, "FlowScroll.services.single_instance", raising=False)
+        monkeypatch.setitem(sys.modules, "PySide6", None)
+        monkeypatch.setitem(sys.modules, "PySide6.QtCore", None)
+        monkeypatch.setitem(sys.modules, "PySide6.QtNetwork", None)
+
+        module = importlib.import_module("FlowScroll.services.single_instance")
+
+        assert module.QT_IPC_AVAILABLE is False
+        manager = module.SingleInstanceManager("cyrilpeng.FlowScroll")
+        assert manager.acquire() is True
+
+
+class TestResourcePath:
+    def test_resource_path_does_not_depend_on_cwd(self, monkeypatch):
+        from FlowScroll.ui.utils import resource_path
+
+        project_root = Path(__file__).resolve().parents[1]
+        monkeypatch.chdir(project_root / "tests")
+
+        resolved = Path(resource_path("FlowScroll/resources/FlowScroll.svg")).resolve()
+        assert resolved == (project_root / "FlowScroll" / "resources" / "FlowScroll.svg").resolve()
+
+
+class TestLinuxPlatform:
+    def test_frontmost_window_info_parsing(self, monkeypatch):
+        from FlowScroll.platform.linux import LinuxPlatform
+
+        platform = LinuxPlatform()
+
+        responses = {
+            ("xprop", "-root", "_NET_ACTIVE_WINDOW"): "_NET_ACTIVE_WINDOW(WINDOW): window id # 0x3a00007",
+            ("xprop", "-id", "0x3a00007", "_NET_WM_NAME", "WM_NAME"): '_NET_WM_NAME(UTF8_STRING) = "Terminal"',
+            ("xprop", "-id", "0x3a00007", "WM_CLASS"): 'WM_CLASS(STRING) = "gnome-terminal-server", "Gnome-terminal"',
+            ("xprop", "-id", "0x3a00007", "_NET_WM_PID"): "_NET_WM_PID(CARDINAL) = 4321",
+            ("xprop", "-id", "0x3a00007", "_NET_WM_STATE"): "_NET_WM_STATE(ATOM) = _NET_WM_STATE_FULLSCREEN",
+        }
+
+        monkeypatch.setattr(platform, "_run_command", lambda command: responses.get(tuple(command), ""))
+        monkeypatch.setattr(platform, "_read_process_name", lambda pid: "gnome-terminal-server" if pid == "4321" else "")
+
+        info = platform.get_frontmost_window_info()
+
+        assert info == ("Terminal", "gnome-terminal-server", "Gnome-terminal", True)
+
+    def test_autostart_roundtrip(self):
+        from FlowScroll.platform.linux import LinuxPlatform
+
+        temp_dir = Path(__file__).resolve().parent / ".tmp_linux_platform"
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)
+        temp_dir.mkdir()
+        platform = LinuxPlatform()
+        platform.autostart_dir = temp_dir
+        platform.desktop_file = temp_dir / "FlowScroll.desktop"
+
+        assert platform.set_autostart("FlowScroll", "/opt/flowscroll/FlowScroll.AppImage", True) is True
+        assert platform.desktop_file.exists()
+        assert platform.is_autostart_enabled("FlowScroll", "/opt/flowscroll/FlowScroll.AppImage") is True
+        assert platform.set_autostart("FlowScroll", "/opt/flowscroll/FlowScroll.AppImage", False) is True
+        assert platform.desktop_file.exists() is False
+        shutil.rmtree(temp_dir)
 
 
 class TestKeyboardManagerHotkeyNormalization:

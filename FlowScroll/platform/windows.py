@@ -171,4 +171,4 @@ class WindowsPlatform(PlatformInterface):
         return "Segoe UI"
 
     def get_icon_name(self):
-        return "logo.ico"
+        return os.path.join("FlowScroll", "resources", "FlowScroll.svg")

@@ -11,6 +11,10 @@ elif OS_NAME == "Darwin":
     from FlowScroll.platform.macos import MacOSPlatform
 
     system_platform = MacOSPlatform()
+elif OS_NAME == "Linux":
+    from FlowScroll.platform.linux import LinuxPlatform
+
+    system_platform = LinuxPlatform()
 else:
     # 暂时回退到空实现或Windows实现
     from FlowScroll.platform.base import PlatformInterface
@@ -32,6 +36,6 @@ else:
             return "sans-serif"
 
         def get_icon_name(self):
-            return "logo.ico"
+            return "FlowScroll/resources/FlowScroll.svg"
 
     system_platform = NullPlatform()

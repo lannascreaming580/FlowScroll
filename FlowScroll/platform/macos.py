@@ -1,5 +1,6 @@
 import os
 import plistlib
+import shlex
 import subprocess
 from FlowScroll.platform.base import PlatformInterface
 from FlowScroll.services.logging_service import logger
@@ -30,9 +31,17 @@ class MacOSPlatform(PlatformInterface):
         if enable:
             try:
                 os.makedirs(os.path.dirname(self.plist_path), exist_ok=True)
+                program_args = []
+                if app_path:
+                    if app_path.startswith('"'):
+                        program_args = shlex.split(app_path)
+                    else:
+                        program_args = [app_path]
+                if not program_args:
+                    return False
                 plist_content = {
                     "Label": self.label,
-                    "ProgramArguments": [app_path],
+                    "ProgramArguments": program_args,
                     "RunAtLoad": True,
                     "KeepAlive": False,
                 }
@@ -61,4 +70,4 @@ class MacOSPlatform(PlatformInterface):
         return ".AppleSystemUIFont"
 
     def get_icon_name(self):
-        return "logo.icns"
+        return os.path.join("FlowScroll", "resources", "FlowScroll.svg")

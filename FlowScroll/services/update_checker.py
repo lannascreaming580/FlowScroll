@@ -3,6 +3,7 @@ import urllib.request
 
 from packaging.version import InvalidVersion, Version
 
+from FlowScroll.constants import UPDATE_CHECK_TIMEOUT
 from FlowScroll.services.logging_service import logger
 
 try:
@@ -57,7 +58,7 @@ def _fetch_github():
     req = urllib.request.Request(
         url, headers={"User-Agent": "FlowScroll-Update-Checker"}
     )
-    with urllib.request.urlopen(req, timeout=5) as response:
+    with urllib.request.urlopen(req, timeout=UPDATE_CHECK_TIMEOUT) as response:
         data = json.loads(response.read().decode("utf-8"))
         version = data.get("tag_name", "").lstrip("v")
         html_url = data.get("html_url", "") or GITHUB_FALLBACK_URL
@@ -69,7 +70,7 @@ def _fetch_gitee():
     req = urllib.request.Request(
         url, headers={"User-Agent": "FlowScroll-Update-Checker"}
     )
-    with urllib.request.urlopen(req, timeout=5) as response:
+    with urllib.request.urlopen(req, timeout=UPDATE_CHECK_TIMEOUT) as response:
         data = json.loads(response.read().decode("utf-8"))
         version = data.get("tag_name", "").lstrip("v")
         html_url = data.get("html_url", "") or GITEE_FALLBACK_URL

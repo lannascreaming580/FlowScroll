@@ -137,11 +137,15 @@ jobs:
             ICON_ARG=""
           fi
 
-          uv run python -m nuitka --assume-yes-for-downloads --standalone --macos-create-app-bundle --enable-plugin=pyside6 $ICON_ARG --include-data-files=main.py=main.py --include-data-dir=FlowScroll/locales=FlowScroll/locales --macos-app-name="FlowScroll" --output-dir=build_out main.py
+          uv run python -m nuitka --assume-yes-for-downloads --standalone --macos-create-app-bundle --enable-plugin=pyside6 $ICON_ARG --include-data-files=main.py=main.py --include-data-dir=FlowScroll/resources=FlowScroll/resources --include-data-dir=FlowScroll/locales=FlowScroll/locales --macos-app-name="FlowScroll" --output-dir=build_out main.py
 
           if [ -d "build_out/main.app" ]; then
             mv build_out/main.app "build_out/FlowScroll.app"
           fi
+
+          test -d "build_out/FlowScroll.app"
+          find "build_out/FlowScroll.app" -path "*FlowScroll/resources/FlowScroll.svg" | grep -q .
+          find "build_out/FlowScroll.app" -path "*FlowScroll/locales/en-US.json" | grep -q .
 
           brew install create-dmg
 
@@ -162,13 +166,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfuse2t64 binutils libxcb-cursor0 imagemagick
 
-          uv run python -m nuitka --assume-yes-for-downloads --standalone --enable-plugin=pyside6 --include-data-dir=FlowScroll/locales=FlowScroll/locales --output-dir=build_out -o FlowScroll_Linux main.py
+          uv run python -m nuitka --assume-yes-for-downloads --standalone --enable-plugin=pyside6 --include-data-dir=FlowScroll/resources=FlowScroll/resources --include-data-dir=FlowScroll/locales=FlowScroll/locales --output-dir=build_out -o FlowScroll_Linux main.py
+
+          find build_out -path "*/FlowScroll/resources/FlowScroll.svg" | grep -q .
+          find build_out -path "*/FlowScroll/locales/en-US.json" | grep -q .
 
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
 
           cp -r build_out/*.dist/* AppDir/usr/bin/
+
+          find AppDir/usr/bin -path "*/FlowScroll/resources/FlowScroll.svg" | grep -q .
+          find AppDir/usr/bin -path "*/FlowScroll/locales/en-US.json" | grep -q .
 
           cat > AppDir/FlowScroll.desktop <<EOF
           [Desktop Entry]
@@ -203,6 +213,7 @@ jobs:
           chmod +x appimagetool
 
           ./appimagetool --appimage-extract-and-run AppDir "FlowScroll_Linux_x86_${{ github.ref_name }}.AppImage"
+          test -f "FlowScroll_Linux_x86_${{ github.ref_name }}.AppImage"
 
       - name: 上传构建产物 (Upload Artifact)
         uses: actions/upload-artifact@v4
