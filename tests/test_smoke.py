@@ -661,7 +661,17 @@ class TestLinuxPlatform:
 
 class TestWindowsPlatform:
     def test_is_autostart_enabled_missing_value_is_silent(self, monkeypatch):
-        import FlowScroll.platform.windows as windows_module
+        fake_winreg = types.SimpleNamespace(
+            HKEY_CURRENT_USER=object(),
+            KEY_READ=0,
+            KEY_ALL_ACCESS=0,
+            OpenKey=None,
+            QueryValueEx=None,
+        )
+        monkeypatch.setitem(sys.modules, "winreg", fake_winreg)
+        monkeypatch.delitem(sys.modules, "FlowScroll.platform.windows", raising=False)
+
+        windows_module = importlib.import_module("FlowScroll.platform.windows")
 
         logged = []
 
@@ -677,7 +687,9 @@ class TestWindowsPlatform:
                 return False
 
         monkeypatch.setattr(windows_module, "logger", DummyLogger())
-        monkeypatch.setattr(windows_module.winreg, "OpenKey", lambda *_args, **_kwargs: DummyKey())
+        monkeypatch.setattr(
+            windows_module.winreg, "OpenKey", lambda *_args, **_kwargs: DummyKey()
+        )
         monkeypatch.setattr(
             windows_module.winreg,
             "QueryValueEx",

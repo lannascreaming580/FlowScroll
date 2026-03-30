@@ -30,6 +30,8 @@ def test_get_system_language_falls_back_to_env(monkeypatch):
     import FlowScroll.i18n as i18n
 
     monkeypatch.setattr(i18n.locale, "getlocale", lambda *args, **kwargs: (None, None))
+    monkeypatch.delenv("LC_ALL", raising=False)
+    monkeypatch.delenv("LC_MESSAGES", raising=False)
     monkeypatch.setenv("LANG", "zh_CN.UTF-8")
 
     assert i18n.get_system_language() == "zh-CN"
