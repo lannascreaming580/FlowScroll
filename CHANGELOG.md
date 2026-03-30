@@ -5,8 +5,17 @@
 ## Unreleased
 
 ### Fixed
+- 修复高级设置页构建时缺少 Qt 相关导入导致的启动即崩溃问题，并为对应的 UI 构建路径补充回归测试
+- 修复 Linux / macOS 在使用 `uv run` 等源码运行时自启动命令丢失 Python 解释器的问题，确保非打包环境下也能正常写入自启动项
+- 修复 WebDAV 连接信息被混入预设配置的问题，调整为单独持久化 `webdav` 字段，避免切换预设时悄悄改写同步目标，并兼容旧配置迁移
+- 修复国际化语言检测中对 `locale.getdefaultlocale()` 的弃用调用，改为 `getlocale` 与环境变量回退链，消除 Python 3.15 兼容性警告
+- 修复 Windows 下未启用开机自启时将缺失注册表项误记为 debug 错误的问题，改为安静返回 `False`
 - 修复部分 WebDAV 服务在根目录地址下直接上传 `FlowScroll_config.json` 返回 404 的兼容性问题；上传失败时会自动回退到 `FlowScroll/FlowScroll_config.json`，并在下载时同时兼容旧路径与新路径
 - 补充 WebDAV 路径规范化与根目录回退上传/下载的回归测试，避免后续修改再次引入同类问题
+
+### Improved
+- 日志策略调整为“开发源码运行时控制台输出 DEBUG，二进制发行时仍保持 ERROR 级别”，兼顾排查效率与发行体积
+- 补充自启动、WebDAV 配置隔离、Windows 日志降噪和语言回退等多条回归测试，提升后续修改的稳定性
 
 ## v1.7.3
 

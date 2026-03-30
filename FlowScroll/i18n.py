@@ -1,5 +1,6 @@
 import json
 import locale
+import os
 from pathlib import Path
 
 from FlowScroll.core.config import STATE_LOCK, cfg
@@ -54,12 +55,19 @@ def get_system_language() -> str:
     except Exception:
         pass
 
-    try:
-        default_locale = locale.getdefaultlocale()[0]  # noqa: UP017
-        if default_locale:
-            candidates.append(default_locale)
-    except Exception:
-        pass
+    locale_messages = getattr(locale, "LC_MESSAGES", None)
+    if locale_messages is not None:
+        try:
+            message_locale = locale.getlocale(locale_messages)[0]
+            if message_locale:
+                candidates.append(message_locale)
+        except Exception:
+            pass
+
+    for env_name in ("LC_ALL", "LC_MESSAGES", "LANG"):
+        raw = os.environ.get(env_name, "").strip()
+        if raw:
+            candidates.append(raw.split(".", 1)[0])
 
     for item in candidates:
         normalized = _normalize_tag(item)

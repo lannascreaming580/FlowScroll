@@ -24,3 +24,12 @@ def test_language_normalization_and_fallback():
     assert normalize_language("en") == "en-US"
     assert normalize_language("EN_us") == "en-US"
     assert normalize_language("unknown") == "auto"
+
+
+def test_get_system_language_falls_back_to_env(monkeypatch):
+    import FlowScroll.i18n as i18n
+
+    monkeypatch.setattr(i18n.locale, "getlocale", lambda *args, **kwargs: (None, None))
+    monkeypatch.setenv("LANG", "zh_CN.UTF-8")
+
+    assert i18n.get_system_language() == "zh-CN"

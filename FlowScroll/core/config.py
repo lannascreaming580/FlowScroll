@@ -178,11 +178,15 @@ class GlobalConfig:
             "activation_compat_mode": self.activation_compat_mode,
             "activation_delay_ms": self.activation_delay_ms,
             "ui_language": self.ui_language,
-            "webdav_url": self.webdav_url,
-            "webdav_username": self.webdav_username,
             "enable_inertia": self.enable_inertia,
             "inertia_friction_ms": self.inertia_friction_ms,
             "inertia_threshold": self.inertia_threshold,
+        }
+
+    def to_webdav_dict(self) -> dict:
+        return {
+            "url": self.webdav_url,
+            "username": self.webdav_username,
         }
 
     def to_dict_for_sync(self) -> dict:
@@ -255,11 +259,17 @@ class GlobalConfig:
         self.activation_compat_mode = data.get("activation_compat_mode", False)
         self.activation_delay_ms = int(data.get("activation_delay_ms", 0))
         self.ui_language = data.get("ui_language", "auto")
-        self.webdav_url = data.get("webdav_url", "")
-        self.webdav_username = data.get("webdav_username", "")
         self.enable_inertia = data.get("enable_inertia", False)
         self.inertia_friction_ms = data.get("inertia_friction_ms", 500)
         self.inertia_threshold = data.get("inertia_threshold", 80.0)
+
+    def from_webdav_dict(self, data):
+        if not isinstance(data, dict):
+            self.webdav_url = ""
+            self.webdav_username = ""
+            return
+        self.webdav_url = str(data.get("url", "")).strip()
+        self.webdav_username = str(data.get("username", "")).strip()
 
     def _get_active_filter_list(self):
         if self.filter_mode == 1:

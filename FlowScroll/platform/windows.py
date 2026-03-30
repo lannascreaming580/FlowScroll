@@ -131,6 +131,8 @@ class WindowsPlatform(PlatformInterface):
             saved_executable = self._normalize_path(self._extract_executable(value))
             expected_executable = self._normalize_path(self._extract_executable(app_path))
             return bool(saved_executable) and saved_executable == expected_executable
+        except FileNotFoundError:
+            return False
         except Exception as e:
             logger.debug(f"is_autostart_enabled check failed: {e}")
             return False

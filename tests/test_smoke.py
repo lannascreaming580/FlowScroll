@@ -51,7 +51,7 @@ class TestGlobalConfig:
         assert c2.activation_delay_ms == 180
         assert c2.ui_language == "en-US"
 
-    def test_to_dict_excludes_credentials(self):
+    def test_to_dict_excludes_webdav_settings(self):
         from FlowScroll.core.config import GlobalConfig
 
         c = GlobalConfig()
@@ -59,7 +59,22 @@ class TestGlobalConfig:
         c.webdav_username = "user"
 
         d = c.to_dict()
-        assert "webdav_password" not in d
+        assert "webdav_url" not in d
+        assert "webdav_username" not in d
+
+    def test_webdav_settings_roundtrip(self):
+        from FlowScroll.core.config import GlobalConfig
+
+        c = GlobalConfig()
+        c.webdav_url = "https://example.com/dav/"
+        c.webdav_username = "alice"
+
+        d = c.to_webdav_dict()
+        c2 = GlobalConfig()
+        c2.from_webdav_dict(d)
+
+        assert c2.webdav_url == "https://example.com/dav/"
+        assert c2.webdav_username == "alice"
 
     def test_from_dict_missing_keys_use_defaults(self):
         from FlowScroll.core.config import GlobalConfig
@@ -185,6 +200,8 @@ class TestPresetManager:
             monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             cfg.sensitivity = 4.0
             cfg.speed_factor = 1.25
+            cfg.webdav_url = "https://example.com/dav/"
+            cfg.webdav_username = "alice"
 
             pm = PresetManager()
             pm.save_to_file()
@@ -194,6 +211,11 @@ class TestPresetManager:
 
             assert saved["current_config"]["sensitivity"] == 4.0
             assert saved["current_config"]["speed_factor"] == 1.25
+            assert "webdav_url" not in saved["current_config"]
+            assert saved["webdav"] == {
+                "url": "https://example.com/dav/",
+                "username": "alice",
+            }
         finally:
             os.unlink(path)
 
@@ -227,6 +249,69 @@ class TestPresetManager:
             assert config_module.cfg.sensitivity == 4.5
             assert config_module.cfg.speed_factor == 1.75
             assert config_module.cfg.enable_horizontal is False
+        finally:
+            os.unlink(path)
+
+    def test_load_restores_separate_webdav_settings(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config(
+            {
+                "presets": {},
+                "last_used": config_module.DEFAULT_PRESET_NAME,
+                "current_config": {
+                    "sensitivity": 4.5,
+                    "speed_factor": 1.75,
+                },
+                "webdav": {
+                    "url": "https://dav.example.com/root/",
+                    "username": "alice",
+                },
+            }
+        )
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+
+            pm.load_from_file()
+
+            assert config_module.cfg.sensitivity == 4.5
+            assert config_module.cfg.webdav_url == "https://dav.example.com/root/"
+            assert config_module.cfg.webdav_username == "alice"
+        finally:
+            os.unlink(path)
+
+    def test_load_migrates_legacy_webdav_settings(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config(
+            {
+                "presets": {},
+                "last_used": config_module.DEFAULT_PRESET_NAME,
+                "current_config": {
+                    "sensitivity": 4.5,
+                    "webdav_url": "https://legacy.example.com/dav/",
+                    "webdav_username": "bob",
+                },
+            }
+        )
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+
+            pm.load_from_file()
+
+            assert config_module.cfg.sensitivity == 4.5
+            assert config_module.cfg.webdav_url == "https://legacy.example.com/dav/"
+            assert config_module.cfg.webdav_username == "bob"
         finally:
             os.unlink(path)
 
@@ -270,6 +355,44 @@ class TestPresetManager:
                 assert "webdav_password" not in data, (
                     f"预设 '{name}' 包含 webdav_password"
                 )
+                assert "webdav_url" not in data
+                assert "webdav_username" not in data
+        finally:
+            os.unlink(path)
+
+    def test_loading_preset_does_not_override_webdav_settings(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+        import FlowScroll.ui.preset_manager as pm_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        path = self._make_temp_config(
+            {
+                "presets": {
+                    "MyPreset": {
+                        "sensitivity": 3.0,
+                        "webdav_url": "https://legacy.example.com/dav/",
+                        "webdav_username": "legacy-user",
+                    }
+                },
+                "last_used": "MyPreset",
+                "current_config": {"sensitivity": 2.0},
+                "webdav": {
+                    "url": "https://dav.example.com/root/",
+                    "username": "alice",
+                },
+            }
+        )
+
+        try:
+            monkeypatch.setattr(config_module, "CONFIG_FILE", path)
+            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
+            pm = PresetManager()
+            pm.load_from_file()
+
+            assert pm.load_preset("MyPreset") is True
+            assert config_module.cfg.sensitivity == 3.0
+            assert config_module.cfg.webdav_url == "https://dav.example.com/root/"
+            assert config_module.cfg.webdav_username == "alice"
         finally:
             os.unlink(path)
 
@@ -534,6 +657,53 @@ class TestLinuxPlatform:
         assert platform.set_autostart("FlowScroll", "/opt/flowscroll/FlowScroll.AppImage", False) is True
         assert platform.desktop_file.exists() is False
         shutil.rmtree(temp_dir)
+
+
+class TestWindowsPlatform:
+    def test_is_autostart_enabled_missing_value_is_silent(self, monkeypatch):
+        import FlowScroll.platform.windows as windows_module
+
+        logged = []
+
+        class DummyLogger:
+            def debug(self, message, *args):
+                logged.append(message % args if args else message)
+
+        class DummyKey:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        monkeypatch.setattr(windows_module, "logger", DummyLogger())
+        monkeypatch.setattr(windows_module.winreg, "OpenKey", lambda *_args, **_kwargs: DummyKey())
+        monkeypatch.setattr(
+            windows_module.winreg,
+            "QueryValueEx",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(FileNotFoundError(2, "not found")),
+        )
+
+        platform = windows_module.WindowsPlatform()
+
+        assert platform.is_autostart_enabled("FlowScroll", "C:\\FlowScroll.exe") is False
+        assert logged == []
+
+
+class TestAutoStartManager:
+    @pytest.mark.parametrize("os_name", ["Linux", "Darwin"])
+    def test_source_run_uses_python_interpreter_on_posix(self, monkeypatch, os_name):
+        import FlowScroll.services.autostart as autostart_module
+
+        monkeypatch.setattr(autostart_module, "OS_NAME", os_name)
+        monkeypatch.setattr(autostart_module.os.path, "abspath", lambda value: value)
+        monkeypatch.setattr(sys, "executable", "/usr/bin/python3")
+        monkeypatch.setattr(sys, "argv", ["/tmp/Flow Scroll/main.py"])
+        monkeypatch.setattr(sys, "frozen", False, raising=False)
+
+        manager = autostart_module.AutoStartManager()
+
+        assert manager.app_path == "/usr/bin/python3 '/tmp/Flow Scroll/main.py'"
 
 
 class TestKeyboardManagerHotkeyNormalization:
@@ -1044,3 +1214,80 @@ class TestMainTabPersistence:
             assert window.saved == 1
         finally:
             cfg.overlay_size = original_overlay_size
+
+
+class TestLoggingService:
+    def test_source_run_uses_debug_console_logging(self, monkeypatch):
+        import FlowScroll.services.logging_service as logging_service
+
+        monkeypatch.setattr(sys, "frozen", False, raising=False)
+
+        assert logging_service.is_frozen_binary() is False
+        assert logging_service.get_logger_level() == logging_service.logging.DEBUG
+        assert logging_service.get_console_log_level() == logging_service.logging.DEBUG
+
+    def test_binary_run_keeps_error_only_logging(self, monkeypatch):
+        import FlowScroll.services.logging_service as logging_service
+
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+
+        assert logging_service.is_frozen_binary() is True
+        assert logging_service.get_logger_level() == logging_service.logging.ERROR
+        assert logging_service.get_console_log_level() == logging_service.logging.ERROR
+
+
+class TestAdvancedTab:
+    def test_build_advanced_tab_smoke(self, monkeypatch):
+        pytest.importorskip("PySide6", exc_type=ImportError)
+        monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+
+        from PySide6.QtWidgets import QApplication
+        from FlowScroll.ui.tabs_builder import build_advanced_tab
+
+        app = QApplication.instance() or QApplication([])
+
+        class DummyAutoStart:
+            def is_autorun(self):
+                return False
+
+        class DummyMainWindow:
+            def __init__(self):
+                self.ui_widgets = {}
+                self.autostart = DummyAutoStart()
+                self.refreshed = False
+
+            def toggle_autorun(self, *_args):
+                return None
+
+            def open_hotkey_dialog(self):
+                return None
+
+            def open_inertia_settings_dialog(self):
+                return None
+
+            def open_reverse_mode_dialog(self):
+                return None
+
+            def open_work_mode_dialog(self):
+                return None
+
+            def open_filter_mode_dialog(self):
+                return None
+
+            def open_webdav_settings(self):
+                return None
+
+            def refresh_input_hook_status_ui(self):
+                self.refreshed = True
+
+            def update_hotkey_label(self):
+                if hasattr(self, "lbl_hotkey"):
+                    self.lbl_hotkey.setText("unset")
+
+        window = DummyMainWindow()
+        widget = build_advanced_tab(window)
+
+        assert app is not None
+        assert widget is not None
+        assert window.refreshed is True
+        assert "filter_mode_button" in window.ui_widgets

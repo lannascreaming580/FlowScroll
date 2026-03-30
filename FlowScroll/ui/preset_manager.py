@@ -23,7 +23,29 @@ class PresetManager:
             "presets": self.presets,
             "last_used": self.current_preset_name,
             "current_config": cfg.to_dict(),
+            "webdav": cfg.to_webdav_dict(),
         }
+
+    def _load_webdav_settings(self, data, current_config, last_used):
+        webdav_settings = data.get("webdav")
+        if isinstance(webdav_settings, dict):
+            cfg.from_webdav_dict(webdav_settings)
+            return
+
+        legacy_sources = []
+        if isinstance(current_config, dict):
+            legacy_sources.append(current_config)
+        if last_used in self.presets:
+            legacy_sources.append(self.presets[last_used])
+
+        for source in legacy_sources:
+            url = source.get("webdav_url", "")
+            username = source.get("webdav_username", "")
+            if url or username:
+                cfg.from_webdav_dict({"url": url, "username": username})
+                return
+
+        cfg.from_webdav_dict({})
 
     def load_from_file(self) -> None:
         """从配置文件中加载预设和当前配置。"""
@@ -70,6 +92,7 @@ class PresetManager:
                     self.presets = {}
                     self.current_preset_name = DEFAULT_PRESET_NAME
                     cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
+                self._load_webdav_settings(data, current_config, last_used)
                 return
             except Exception as e:
                 logger.warning(f"Failed to load presets from file: {e}")
@@ -77,6 +100,7 @@ class PresetManager:
         self.presets = {}
         self.current_preset_name = DEFAULT_PRESET_NAME
         cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
+        cfg.from_webdav_dict({})
 
     def save_to_file(self) -> None:
         """将预设与当前配置写回配置文件。"""

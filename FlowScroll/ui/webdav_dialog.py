@@ -510,6 +510,7 @@ if QDialog is not None:
                             "presets": {},
                             "last_used": "",
                             "current_config": cfg.to_dict(),
+                            "webdav": cfg.to_webdav_dict(),
                         },
                         f,
                         ensure_ascii=False,

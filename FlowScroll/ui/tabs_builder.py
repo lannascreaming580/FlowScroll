@@ -184,16 +184,20 @@ def build_parameter_tab(main_window):
 
 
 def build_advanced_tab(main_window):
-    from PySide6.QtCore import Qt
+    from PySide6.QtCore import Qt, QSize
+    from PySide6.QtGui import QIcon, QPainter, QPixmap
     from PySide6.QtWidgets import (
         QWidget,
         QVBoxLayout,
         QHBoxLayout,
         QLabel,
         QCheckBox,
+        QPushButton,
     )
 
     from FlowScroll.ui.helpers import create_card, create_h_line, add_toggle_row
+    from FlowScroll.ui.styles import get_hotkey_label_style
+    from FlowScroll.ui.utils import resource_path
 
     tab2_widget = QWidget()
     tab2_layout = QVBoxLayout(tab2_widget)

@@ -17,9 +17,22 @@ def get_log_dir():
 LOG_FILE = os.path.join(get_log_dir(), "app.log")
 
 
+def is_frozen_binary():
+    return bool(getattr(sys, "frozen", False))
+
+
+def get_logger_level():
+    return logging.ERROR if is_frozen_binary() else logging.DEBUG
+
+
+def get_console_log_level():
+    return logging.ERROR if is_frozen_binary() else logging.DEBUG
+
+
 def setup_logging():
     logger = logging.getLogger("FlowScroll")
-    logger.setLevel(logging.ERROR)
+    logger.setLevel(get_logger_level())
+    logger.propagate = False
 
     # 避免重复添加处理器。
     if logger.handlers:
@@ -31,7 +44,7 @@ def setup_logging():
 
     # 控制台处理器。
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.ERROR)
+    console_handler.setLevel(get_console_log_level())
 
     # 统一日志格式。
     formatter = logging.Formatter(
