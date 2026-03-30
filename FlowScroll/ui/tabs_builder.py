@@ -79,7 +79,7 @@ def build_parameter_tab(main_window):
         "ic_size.svg",
         tr("param.overlay_size"),
         cfg.overlay_size,
-        30,
+        0,
         150,
         lambda v: _persist_config_change(
             main_window,
@@ -342,7 +342,9 @@ def build_advanced_tab(main_window):
     btn_app_filter = QPushButton(tr("tab.advanced.filter_mode_btn"))
     btn_app_filter.setObjectName("BtnAdv")
     btn_app_filter.setCursor(Qt.PointingHandCursor)
-    filter_path = resource_path(os.path.join("FlowScroll", "resources", "ic_filter.svg"))
+    filter_path = resource_path(
+        os.path.join("FlowScroll", "resources", "ic_filter.svg")
+    )
     if os.path.exists(filter_path):
         btn_app_filter.setIcon(QIcon(filter_path))
         btn_app_filter.setIconSize(QSize(18, 18))
