@@ -29,6 +29,7 @@ BUILTIN_PRESETS = {
         "filter_mode": 0,
         "filter_blacklist": [],
         "filter_whitelist": [],
+        "filter_use_regex": False,
         "disable_fullscreen": True,
         "disable_desktop": True,
     },
@@ -48,6 +49,7 @@ BUILTIN_PRESETS = {
         "filter_mode": 0,
         "filter_blacklist": [],
         "filter_whitelist": [],
+        "filter_use_regex": False,
         "disable_fullscreen": True,
         "disable_desktop": True,
     },
@@ -67,6 +69,7 @@ BUILTIN_PRESETS = {
         "filter_mode": 0,
         "filter_blacklist": [],
         "filter_whitelist": [],
+        "filter_use_regex": False,
         "disable_fullscreen": True,
         "disable_desktop": True,
     },
@@ -86,6 +89,7 @@ BUILTIN_PRESETS = {
         "filter_mode": 0,
         "filter_blacklist": [],
         "filter_whitelist": [],
+        "filter_use_regex": False,
         "disable_fullscreen": True,
         "disable_desktop": True,
     },
@@ -144,6 +148,7 @@ class GlobalConfig:
         self.filter_mode = 0
         self.filter_blacklist = []
         self.filter_whitelist = []
+        self.filter_use_regex = False
         self.disable_fullscreen = True
         self.disable_desktop = True
 
@@ -171,6 +176,7 @@ class GlobalConfig:
             "filter_mode": self.filter_mode,
             "filter_blacklist": self.filter_blacklist,
             "filter_whitelist": self.filter_whitelist,
+            "filter_use_regex": self.filter_use_regex,
             "filter_list": self._get_active_filter_list(),
             "disable_fullscreen": self.disable_fullscreen,
             "disable_desktop": self.disable_desktop,
@@ -207,6 +213,7 @@ class GlobalConfig:
             "filter_mode": self.filter_mode,
             "filter_blacklist": self.filter_blacklist,
             "filter_whitelist": self.filter_whitelist,
+            "filter_use_regex": self.filter_use_regex,
             "filter_list": self._get_active_filter_list(),
             "disable_fullscreen": self.disable_fullscreen,
             "disable_desktop": self.disable_desktop,
@@ -253,6 +260,7 @@ class GlobalConfig:
         self.filter_whitelist = [
             str(v).strip() for v in self.filter_whitelist if str(v).strip()
         ]
+        self.filter_use_regex = data.get("filter_use_regex", False)
         self.disable_fullscreen = data.get("disable_fullscreen", True)
         self.disable_desktop = data.get("disable_desktop", True)
         self.activation_mode = data.get("activation_mode", 0)

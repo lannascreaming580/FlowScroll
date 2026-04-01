@@ -108,6 +108,7 @@
   "dialog.filter.import": "Import",
   "dialog.filter.clear": "Clear",
   "dialog.filter.hint": "Import from text file; one keyword per line. Use stable process-name fragments such as chrome, code, or potplayer. If the current environment cannot identify the process name, FlowScroll temporarily falls back to window-title matching for the current foreground app only.",
+  "dialog.filter.use_regex": "Enable regex matching (each rule is treated as a regex pattern)",
   "dialog.filter.save": "Save",
   "dialog.filter.clear_confirm_title": "Confirm Clear",
   "dialog.filter.clear_confirm_body": "Clear all {name} keywords?",

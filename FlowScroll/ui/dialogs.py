@@ -1,4 +1,4 @@
-﻿from PySide6.QtWidgets import (
+from PySide6.QtWidgets import (
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -75,7 +75,7 @@ class ReverseModeDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         btn_save = QPushButton(tr("dialog.reverse.save"))
-        btn_save.setObjectName('BtnPrimary')
+        btn_save.setObjectName("BtnPrimary")
         btn_save.setCursor(Qt.PointingHandCursor)
         btn_save.clicked.connect(self.save_and_close)
         btn_layout.addWidget(btn_save)
@@ -110,10 +110,10 @@ class WorkModeDialog(QDialog):
         mode_layout.setSpacing(12)
 
         title = QLabel(tr("dialog.work.header_title"))
-        title.setStyleSheet('font-size: 17px; font-weight: 700; color: #F8FAFC;')
+        title.setStyleSheet("font-size: 17px; font-weight: 700; color: #F8FAFC;")
         subtitle = QLabel(tr("dialog.work.subtitle"))
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet('color: #94A3B8; font-size: 13px;')
+        subtitle.setStyleSheet("color: #94A3B8; font-size: 13px;")
         mode_layout.addWidget(title)
         mode_layout.addWidget(subtitle)
 
@@ -123,7 +123,7 @@ class WorkModeDialog(QDialog):
             mode_id=0,
             title=tr("dialog.work.mode_click_title"),
             desc=tr("dialog.work.mode_click_desc"),
-            key_name='click',
+            key_name="click",
             hotkey_value=cfg.activation_hotkey_click,
         )
         self._build_mode_block(
@@ -131,7 +131,7 @@ class WorkModeDialog(QDialog):
             mode_id=1,
             title=tr("dialog.work.mode_hold_title"),
             desc=tr("dialog.work.mode_hold_desc"),
-            key_name='hold',
+            key_name="hold",
             hotkey_value=cfg.activation_hotkey_hold,
         )
         self.radio_click_toggle.setChecked(cfg.activation_mode == 0)
@@ -152,7 +152,7 @@ class WorkModeDialog(QDialog):
         delay_row.setContentsMargins(8, 0, 0, 0)
         delay_row.setSpacing(10)
         self.delay_title = QLabel(tr("dialog.work.delay_title"))
-        self.delay_title.setStyleSheet('color: #94A3B8; font-size: 13px;')
+        self.delay_title.setStyleSheet("color: #94A3B8; font-size: 13px;")
         self.delay_value_label = QLabel()
         self.delay_value_label.setStyleSheet(get_value_label_style())
 
@@ -172,7 +172,7 @@ class WorkModeDialog(QDialog):
         self.compat_hint = QLabel(tr("dialog.work.compat_hint"))
         self.compat_hint.setWordWrap(True)
         self.compat_hint.setContentsMargins(8, 0, 0, 0)
-        self.compat_hint.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        self.compat_hint.setStyleSheet("color: #94A3B8; font-size: 12px;")
         policy_layout.addWidget(self.compat_hint)
 
         layout.addWidget(policy_card)
@@ -180,7 +180,7 @@ class WorkModeDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         btn_save = QPushButton(tr("dialog.work.save"))
-        btn_save.setObjectName('BtnPrimary')
+        btn_save.setObjectName("BtnPrimary")
         btn_save.setCursor(Qt.PointingHandCursor)
         btn_save.clicked.connect(self.save_and_close)
         btn_layout.addWidget(btn_save)
@@ -192,7 +192,9 @@ class WorkModeDialog(QDialog):
         adaptive_height = max(WORK_MODE_DIALOG_HEIGHT, self.sizeHint().height())
         self.resize(WORK_MODE_DIALOG_WIDTH, adaptive_height)
 
-    def _build_mode_block(self, parent_layout, mode_id, title, desc, key_name, hotkey_value):
+    def _build_mode_block(
+        self, parent_layout, mode_id, title, desc, key_name, hotkey_value
+    ):
         block = QLabel()
         block.setFixedHeight(1)
         if parent_layout.count() > 0:
@@ -211,7 +213,7 @@ class WorkModeDialog(QDialog):
         desc_lbl = QLabel(desc)
         desc_lbl.setWordWrap(True)
         desc_lbl.setContentsMargins(24, 0, 0, 0)
-        desc_lbl.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        desc_lbl.setStyleSheet("color: #94A3B8; font-size: 12px;")
         parent_layout.addWidget(desc_lbl)
         parent_layout.addLayout(self._create_hotkey_row(key_name, hotkey_value))
 
@@ -234,11 +236,11 @@ class WorkModeDialog(QDialog):
         row.addWidget(btn_clear)
 
         wrapper.addLayout(row)
-        setattr(self, f'activation_hotkey_edit_{key_name}', edit)
+        setattr(self, f"activation_hotkey_edit_{key_name}", edit)
         return wrapper
 
     def _update_delay_label(self):
-        self.delay_value_label.setText(f'{self.activation_delay_slider.value()} ms')
+        self.delay_value_label.setText(f"{self.activation_delay_slider.value()} ms")
 
     def _on_compat_mode_changed(self, checked):
         self.activation_delay_slider.setEnabled(checked)
@@ -263,7 +265,10 @@ class AppFilterDialog(QDialog):
         self.setSizeGripEnabled(True)
 
         self.setStyleSheet(
-            get_dialog_stylesheet() + get_radiobutton_style() + get_textedit_style()
+            get_dialog_stylesheet()
+            + get_radiobutton_style()
+            + get_textedit_style()
+            + get_checkbox_style()
         )
 
         layout = QVBoxLayout(self)
@@ -271,10 +276,10 @@ class AppFilterDialog(QDialog):
         layout.setSpacing(14)
 
         title = QLabel(tr("dialog.filter.header_title"))
-        title.setStyleSheet('font-size: 17px; font-weight: 700; color: #F8FAFC;')
+        title.setStyleSheet("font-size: 17px; font-weight: 700; color: #F8FAFC;")
         subtitle = QLabel(tr("dialog.filter.subtitle"))
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet('color: #94A3B8; font-size: 13px;')
+        subtitle.setStyleSheet("color: #94A3B8; font-size: 13px;")
         layout.addWidget(title)
         layout.addWidget(subtitle)
 
@@ -284,7 +289,7 @@ class AppFilterDialog(QDialog):
         self.process_name_warning = QLabel(tr("dialog.filter.process_name_unavailable"))
         self.process_name_warning.setWordWrap(True)
         self.process_name_warning.setStyleSheet(
-            'color: #FCA5A5; background: rgba(127, 29, 29, 0.28); border: 1px solid rgba(252, 165, 165, 0.35); border-radius: 10px; padding: 10px 12px;'
+            "color: #FCA5A5; background: rgba(127, 29, 29, 0.28); border: 1px solid rgba(252, 165, 165, 0.35); border-radius: 10px; padding: 10px 12px;"
         )
         self.process_name_warning.setVisible(process_name_status == "unavailable")
         layout.addWidget(self.process_name_warning)
@@ -294,7 +299,7 @@ class AppFilterDialog(QDialog):
         mode_layout.setSpacing(10)
 
         mode_title = QLabel(tr("dialog.filter.mode_title"))
-        mode_title.setStyleSheet('font-size: 15px; font-weight: 700; color: #E2E8F0;')
+        mode_title.setStyleSheet("font-size: 15px; font-weight: 700; color: #E2E8F0;")
         mode_layout.addWidget(mode_title)
 
         self.button_group = QButtonGroup(self)
@@ -307,7 +312,7 @@ class AppFilterDialog(QDialog):
         desc_global = QLabel(tr("dialog.filter.mode_global_desc"))
         desc_global.setWordWrap(True)
         desc_global.setContentsMargins(24, 0, 0, 0)
-        desc_global.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        desc_global.setStyleSheet("color: #94A3B8; font-size: 12px;")
         mode_layout.addWidget(desc_global)
 
         mode_layout.addWidget(create_h_line())
@@ -320,7 +325,7 @@ class AppFilterDialog(QDialog):
         desc_blacklist = QLabel(tr("dialog.filter.mode_blacklist_desc"))
         desc_blacklist.setWordWrap(True)
         desc_blacklist.setContentsMargins(24, 0, 0, 0)
-        desc_blacklist.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        desc_blacklist.setStyleSheet("color: #94A3B8; font-size: 12px;")
         mode_layout.addWidget(desc_blacklist)
 
         mode_layout.addWidget(create_h_line())
@@ -333,7 +338,7 @@ class AppFilterDialog(QDialog):
         desc_whitelist = QLabel(tr("dialog.filter.mode_whitelist_desc"))
         desc_whitelist.setWordWrap(True)
         desc_whitelist.setContentsMargins(24, 0, 0, 0)
-        desc_whitelist.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        desc_whitelist.setStyleSheet("color: #94A3B8; font-size: 12px;")
         mode_layout.addWidget(desc_whitelist)
 
         self.radio_global.setChecked(cfg.filter_mode == 0)
@@ -351,33 +356,39 @@ class AppFilterDialog(QDialog):
         left_col = QVBoxLayout()
         left_col.setSpacing(8)
         lbl_black = QLabel(tr("dialog.filter.blacklist_title"))
-        lbl_black.setStyleSheet('color: #E2E8F0; font-weight: 600;')
+        lbl_black.setStyleSheet("color: #E2E8F0; font-weight: 600;")
         lbl_black.setAlignment(Qt.AlignHCenter)
         black_action_row = QHBoxLayout()
         black_action_row.setSpacing(8)
         black_action_row.setContentsMargins(0, 7, 0, 7)
         self.btn_import_black = QPushButton(tr("dialog.filter.import"))
         self.btn_import_black.setCursor(Qt.PointingHandCursor)
-        self.btn_import_black.setObjectName('BtnSmall')
+        self.btn_import_black.setObjectName("BtnSmall")
         self.btn_import_black.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_import_black.setFixedHeight(20)
-        self.btn_import_black.setStyleSheet("min-height: 20px; padding-top: 1px; padding-bottom: 1px;")
+        self.btn_import_black.setStyleSheet(
+            "min-height: 20px; padding-top: 1px; padding-bottom: 1px;"
+        )
         self.btn_import_black.clicked.connect(
             lambda: self._import_keywords_to(self.text_edit_blacklist)
         )
         black_action_row.addWidget(self.btn_import_black)
         self.btn_clear_black = QPushButton(tr("dialog.filter.clear"))
         self.btn_clear_black.setCursor(Qt.PointingHandCursor)
-        self.btn_clear_black.setObjectName('BtnSmall')
+        self.btn_clear_black.setObjectName("BtnSmall")
         self.btn_clear_black.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_clear_black.setFixedHeight(20)
-        self.btn_clear_black.setStyleSheet("min-height: 20px; padding-top: 1px; padding-bottom: 1px;")
+        self.btn_clear_black.setStyleSheet(
+            "min-height: 20px; padding-top: 1px; padding-bottom: 1px;"
+        )
         self.btn_clear_black.clicked.connect(
-            lambda: self._clear_keywords(self.text_edit_blacklist, tr("dialog.filter.blacklist_name"))
+            lambda: self._clear_keywords(
+                self.text_edit_blacklist, tr("dialog.filter.blacklist_name")
+            )
         )
         black_action_row.addWidget(self.btn_clear_black)
         self.text_edit_blacklist = QTextEdit()
-        self.text_edit_blacklist.setPlainText('\n'.join(cfg.filter_blacklist))
+        self.text_edit_blacklist.setPlainText("\n".join(cfg.filter_blacklist))
         self.text_edit_blacklist.setMinimumHeight(140)
         left_col.addWidget(lbl_black)
         left_col.addLayout(black_action_row)
@@ -386,33 +397,39 @@ class AppFilterDialog(QDialog):
         right_col = QVBoxLayout()
         right_col.setSpacing(8)
         lbl_white = QLabel(tr("dialog.filter.whitelist_title"))
-        lbl_white.setStyleSheet('color: #E2E8F0; font-weight: 600;')
+        lbl_white.setStyleSheet("color: #E2E8F0; font-weight: 600;")
         lbl_white.setAlignment(Qt.AlignHCenter)
         white_action_row = QHBoxLayout()
         white_action_row.setSpacing(8)
         white_action_row.setContentsMargins(0, 7, 0, 7)
         self.btn_import_white = QPushButton(tr("dialog.filter.import"))
         self.btn_import_white.setCursor(Qt.PointingHandCursor)
-        self.btn_import_white.setObjectName('BtnSmall')
+        self.btn_import_white.setObjectName("BtnSmall")
         self.btn_import_white.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_import_white.setFixedHeight(20)
-        self.btn_import_white.setStyleSheet("min-height: 20px; padding-top: 1px; padding-bottom: 1px;")
+        self.btn_import_white.setStyleSheet(
+            "min-height: 20px; padding-top: 1px; padding-bottom: 1px;"
+        )
         self.btn_import_white.clicked.connect(
             lambda: self._import_keywords_to(self.text_edit_whitelist)
         )
         white_action_row.addWidget(self.btn_import_white)
         self.btn_clear_white = QPushButton(tr("dialog.filter.clear"))
         self.btn_clear_white.setCursor(Qt.PointingHandCursor)
-        self.btn_clear_white.setObjectName('BtnSmall')
+        self.btn_clear_white.setObjectName("BtnSmall")
         self.btn_clear_white.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.btn_clear_white.setFixedHeight(20)
-        self.btn_clear_white.setStyleSheet("min-height: 20px; padding-top: 1px; padding-bottom: 1px;")
+        self.btn_clear_white.setStyleSheet(
+            "min-height: 20px; padding-top: 1px; padding-bottom: 1px;"
+        )
         self.btn_clear_white.clicked.connect(
-            lambda: self._clear_keywords(self.text_edit_whitelist, tr("dialog.filter.whitelist_name"))
+            lambda: self._clear_keywords(
+                self.text_edit_whitelist, tr("dialog.filter.whitelist_name")
+            )
         )
         white_action_row.addWidget(self.btn_clear_white)
         self.text_edit_whitelist = QTextEdit()
-        self.text_edit_whitelist.setPlainText('\n'.join(cfg.filter_whitelist))
+        self.text_edit_whitelist.setPlainText("\n".join(cfg.filter_whitelist))
         self.text_edit_whitelist.setMinimumHeight(140)
         right_col.addWidget(lbl_white)
         right_col.addLayout(white_action_row)
@@ -424,15 +441,20 @@ class AppFilterDialog(QDialog):
 
         hint = QLabel(tr("dialog.filter.hint"))
         hint.setWordWrap(True)
-        hint.setStyleSheet('color: #94A3B8; font-size: 12px;')
+        hint.setStyleSheet("color: #94A3B8; font-size: 12px;")
         keyword_layout.addWidget(hint)
+
+        self.chk_use_regex = QCheckBox(tr("dialog.filter.use_regex"))
+        self.chk_use_regex.setChecked(cfg.filter_use_regex)
+        self.chk_use_regex.setCursor(Qt.PointingHandCursor)
+        keyword_layout.addWidget(self.chk_use_regex)
 
         layout.addWidget(keyword_card)
 
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         btn_save = QPushButton(tr("dialog.filter.save"))
-        btn_save.setObjectName('BtnPrimary')
+        btn_save.setObjectName("BtnPrimary")
         btn_save.setCursor(Qt.PointingHandCursor)
         btn_save.clicked.connect(self.save_and_close)
         btn_layout.addWidget(btn_save)
@@ -443,7 +465,7 @@ class AppFilterDialog(QDialog):
 
     @staticmethod
     def _parse_keywords(text):
-        return [line.strip() for line in text.split('\n') if line.strip()]
+        return [line.strip() for line in text.split("\n") if line.strip()]
 
     def _clear_keywords(self, target_edit: QTextEdit, list_name: str):
         reply = QMessageBox.question(
@@ -460,26 +482,31 @@ class AppFilterDialog(QDialog):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr("dialog.filter.import_title"),
-            '',
+            "",
             tr("dialog.filter.import_filter"),
         )
         if not file_path:
             return
 
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             raw = f.read()
 
         try:
-            content = raw.decode('utf-8-sig')
+            content = raw.decode("utf-8-sig")
         except UnicodeDecodeError:
-            content = raw.decode('gbk', errors='ignore')
+            content = raw.decode("gbk", errors="ignore")
 
-        target_edit.setPlainText('\n'.join(self._parse_keywords(content)))
+        target_edit.setPlainText("\n".join(self._parse_keywords(content)))
 
     def save_and_close(self):
         cfg.filter_mode = self.button_group.checkedId()
-        cfg.filter_blacklist = self._parse_keywords(self.text_edit_blacklist.toPlainText())
-        cfg.filter_whitelist = self._parse_keywords(self.text_edit_whitelist.toPlainText())
+        cfg.filter_blacklist = self._parse_keywords(
+            self.text_edit_blacklist.toPlainText()
+        )
+        cfg.filter_whitelist = self._parse_keywords(
+            self.text_edit_whitelist.toPlainText()
+        )
+        cfg.filter_use_regex = self.chk_use_regex.isChecked()
         self.accept()
 
 
@@ -497,10 +524,10 @@ class InertiaSettingsDialog(QDialog):
         layout.setSpacing(14)
 
         title = QLabel(tr("dialog.inertia.header_title"))
-        title.setStyleSheet('font-size: 17px; font-weight: 700; color: #F8FAFC;')
+        title.setStyleSheet("font-size: 17px; font-weight: 700; color: #F8FAFC;")
         subtitle = QLabel(tr("dialog.inertia.subtitle"))
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet('color: #94A3B8; font-size: 13px;')
+        subtitle.setStyleSheet("color: #94A3B8; font-size: 13px;")
         layout.addWidget(title)
         layout.addWidget(subtitle)
 
@@ -511,7 +538,9 @@ class InertiaSettingsDialog(QDialog):
 
         friction_header = QHBoxLayout()
         friction_title = QLabel(tr("dialog.inertia.friction_title"))
-        friction_title.setStyleSheet('font-size: 15px; font-weight: 700; color: #E2E8F0;')
+        friction_title.setStyleSheet(
+            "font-size: 15px; font-weight: 700; color: #E2E8F0;"
+        )
         self.friction_value_label = QLabel()
         self.friction_value_label.setStyleSheet(get_value_label_style())
         friction_header.addWidget(friction_title)
@@ -552,7 +581,9 @@ class InertiaSettingsDialog(QDialog):
 
         threshold_header = QHBoxLayout()
         threshold_title = QLabel(tr("dialog.inertia.threshold_title"))
-        threshold_title.setStyleSheet('font-size: 15px; font-weight: 700; color: #E2E8F0;')
+        threshold_title.setStyleSheet(
+            "font-size: 15px; font-weight: 700; color: #E2E8F0;"
+        )
         self.threshold_value_label = QLabel()
         self.threshold_value_label.setStyleSheet(get_value_label_style())
         threshold_header.addWidget(threshold_title)
@@ -590,7 +621,7 @@ class InertiaSettingsDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         btn_save = QPushButton(tr("dialog.inertia.save"))
-        btn_save.setObjectName('BtnPrimary')
+        btn_save.setObjectName("BtnPrimary")
         btn_save.setCursor(Qt.PointingHandCursor)
         btn_save.clicked.connect(self.save_and_close)
         btn_layout.addWidget(btn_save)
@@ -604,11 +635,11 @@ class InertiaSettingsDialog(QDialog):
 
     def _update_friction_label(self):
         ms = self.friction_slider.value()
-        self.friction_value_label.setText(f'{ms} ms')
+        self.friction_value_label.setText(f"{ms} ms")
 
     def _update_threshold_label(self):
         val = self.threshold_slider.value()
-        self.threshold_value_label.setText(f'{val} px/s')
+        self.threshold_value_label.setText(f"{val} px/s")
 
     def _on_friction_changed(self, _value):
         self._update_friction_label()

@@ -1,5 +1,19 @@
+import re
+
 from FlowScroll.core.config import STATE_LOCK, cfg, runtime
 from FlowScroll.platform import OS_NAME
+from FlowScroll.services.logging_service import logger
+
+
+def _match_keyword(keyword: str, target: str, use_regex: bool) -> bool:
+    """根据配置选择模糊匹配或正则匹配。"""
+    if use_regex:
+        try:
+            return bool(re.search(keyword, target, re.IGNORECASE))
+        except re.error:
+            logger.debug(f"Invalid regex pattern skipped: {keyword}")
+            return False
+    return keyword.lower() in target
 
 
 def is_current_app_allowed() -> bool:
@@ -15,6 +29,7 @@ def is_current_app_allowed() -> bool:
         process_name_status = runtime.process_name_status
         filter_blacklist = list(cfg.filter_blacklist)
         filter_whitelist = list(cfg.filter_whitelist)
+        use_regex = cfg.filter_use_regex
 
     if process_name_status == "available":
         match_target = process_name
@@ -36,7 +51,7 @@ def is_current_app_allowed() -> bool:
 
     if filter_mode == 1:
         for keyword in filter_blacklist:
-            if keyword.lower() in match_target:
+            if _match_keyword(keyword, match_target, use_regex):
                 return False
         return True
 
@@ -44,7 +59,7 @@ def is_current_app_allowed() -> bool:
         if not match_target:
             return True
         for keyword in filter_whitelist:
-            if keyword.lower() in match_target:
+            if _match_keyword(keyword, match_target, use_regex):
                 return True
         return False
 
