@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from FlowScroll.core.config import STATE_LOCK, cfg, runtime
+from FlowScroll.core.filter_validation import collect_invalid_regex_lines
 from FlowScroll.i18n import tr
 from FlowScroll.ui.components import HotkeyEdit
 from FlowScroll.ui.helpers import create_card, create_h_line
@@ -467,6 +468,24 @@ class AppFilterDialog(QDialog):
     def _parse_keywords(text):
         return [line.strip() for line in text.split("\n") if line.strip()]
 
+    def _collect_invalid_regex_rules(self):
+        invalid_rules = []
+        rule_groups = [
+            (tr("dialog.filter.blacklist_name"), self.text_edit_blacklist.toPlainText()),
+            (tr("dialog.filter.whitelist_name"), self.text_edit_whitelist.toPlainText()),
+        ]
+        for list_name, raw_text in rule_groups:
+            for line_no, keyword in collect_invalid_regex_lines(raw_text):
+                invalid_rules.append(
+                    tr(
+                        "dialog.filter.invalid_regex_item",
+                        name=list_name,
+                        line=line_no,
+                        pattern=keyword,
+                    )
+                )
+        return invalid_rules
+
     def _clear_keywords(self, target_edit: QTextEdit, list_name: str):
         reply = QMessageBox.question(
             self,
@@ -499,6 +518,18 @@ class AppFilterDialog(QDialog):
         target_edit.setPlainText("\n".join(self._parse_keywords(content)))
 
     def save_and_close(self):
+        if self.chk_use_regex.isChecked():
+            invalid_rules = self._collect_invalid_regex_rules()
+            if invalid_rules:
+                QMessageBox.warning(
+                    self,
+                    tr("dialog.filter.invalid_regex_title"),
+                    tr(
+                        "dialog.filter.invalid_regex_body",
+                        details="\n".join(invalid_rules),
+                    ),
+                )
+                return
         cfg.filter_mode = self.button_group.checkedId()
         cfg.filter_blacklist = self._parse_keywords(
             self.text_edit_blacklist.toPlainText()

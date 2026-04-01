@@ -5,6 +5,20 @@ import re
 import pytest
 
 
+class TestRegexValidationHelpers:
+    def test_collect_invalid_regex_lines_preserves_original_line_numbers(self):
+        from FlowScroll.core.filter_validation import collect_invalid_regex_lines
+
+        raw_text = "\n[invalid\n\n  ^chrome$  \n*bad\n"
+        assert collect_invalid_regex_lines(raw_text) == [(2, "[invalid"), (5, "*bad")]
+
+    def test_collect_invalid_regex_lines_handles_windows_newlines(self):
+        from FlowScroll.core.filter_validation import collect_invalid_regex_lines
+
+        raw_text = "\r\n[bad\r\n\r\n  (?P<name\r\n"
+        assert collect_invalid_regex_lines(raw_text) == [(2, "[bad"), (4, "(?P<name")]
+
+
 class TestMatchKeyword:
     """测试 _match_keyword 辅助函数的模糊/正则匹配逻辑。"""
 
@@ -279,6 +293,111 @@ class TestRegexFallbackBehavior:
         runtime.is_fullscreen = False
 
         assert is_current_app_allowed() is True
+
+
+class TestRegexCompilationCache:
+    def test_compiles_each_regex_pattern_only_once(self, monkeypatch):
+        import FlowScroll.core.rules as rules
+
+        original_compile = re.compile
+        compile_calls = []
+
+        def tracking_compile(pattern, flags=0):
+            compile_calls.append((pattern, flags))
+            return original_compile(pattern, flags)
+
+        rules._compile_regex.cache_clear()
+        monkeypatch.setattr(rules.re, "compile", tracking_compile)
+
+        assert rules._match_keyword(r"^chrome$", "chrome", use_regex=True) is True
+        assert rules._match_keyword(r"^chrome$", "chrome.exe", use_regex=True) is False
+        assert compile_calls == [(r"^chrome$", re.IGNORECASE)]
+
+    def test_invalid_regex_is_cached_after_first_failure(self, monkeypatch):
+        import FlowScroll.core.rules as rules
+
+        original_compile = re.compile
+        compile_calls = []
+
+        def tracking_compile(pattern, flags=0):
+            compile_calls.append((pattern, flags))
+            return original_compile(pattern, flags)
+
+        rules._compile_regex.cache_clear()
+        monkeypatch.setattr(rules.re, "compile", tracking_compile)
+
+        assert rules._match_keyword("[invalid", "chrome", use_regex=True) is False
+        assert rules._match_keyword("[invalid", "firefox", use_regex=True) is False
+        assert compile_calls == [("[invalid", re.IGNORECASE)]
+
+
+class TestAppFilterDialogRegexValidation:
+    def test_invalid_regex_blocks_save_and_shows_warning(self, monkeypatch):
+        qtwidgets = pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+        QApplication = qtwidgets.QApplication
+        app = QApplication.instance() or QApplication([])
+        assert app is not None
+
+        from FlowScroll.core.config import cfg
+        from FlowScroll.ui.dialogs import AppFilterDialog
+
+        warnings = []
+
+        def fake_warning(_parent, title, body):
+            warnings.append((title, body))
+            return qtwidgets.QMessageBox.Ok
+
+        monkeypatch.setattr(qtwidgets.QMessageBox, "warning", fake_warning)
+
+        cfg.filter_mode = 0
+        cfg.filter_blacklist = ["existing-blacklist"]
+        cfg.filter_whitelist = ["existing-whitelist"]
+        cfg.filter_use_regex = False
+
+        dialog = AppFilterDialog()
+        dialog.radio_blacklist.setChecked(True)
+        dialog.chk_use_regex.setChecked(True)
+        dialog.text_edit_blacklist.setPlainText("[invalid\nchrome")
+        dialog.text_edit_whitelist.setPlainText("")
+
+        dialog.save_and_close()
+
+        assert len(warnings) == 1
+        assert "invalid" in warnings[0][0].lower() or "无效" in warnings[0][0]
+        assert "[invalid" in warnings[0][1]
+        assert cfg.filter_mode == 0
+        assert cfg.filter_blacklist == ["existing-blacklist"]
+        assert cfg.filter_whitelist == ["existing-whitelist"]
+        assert cfg.filter_use_regex is False
+        dialog.close()
+
+    def test_valid_regex_saves_successfully(self):
+        qtwidgets = pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+        QApplication = qtwidgets.QApplication
+        app = QApplication.instance() or QApplication([])
+        assert app is not None
+
+        from FlowScroll.core.config import cfg
+        from FlowScroll.ui.dialogs import AppFilterDialog
+
+        cfg.filter_mode = 0
+        cfg.filter_blacklist = []
+        cfg.filter_whitelist = []
+        cfg.filter_use_regex = False
+
+        dialog = AppFilterDialog()
+        dialog.radio_blacklist.setChecked(True)
+        dialog.chk_use_regex.setChecked(True)
+        dialog.text_edit_blacklist.setPlainText(r"^chrome$")
+        dialog.text_edit_whitelist.setPlainText(r"^code$")
+
+        dialog.save_and_close()
+
+        assert cfg.filter_mode == 1
+        assert cfg.filter_blacklist == [r"^chrome$"]
+        assert cfg.filter_whitelist == [r"^code$"]
+        assert cfg.filter_use_regex is True
+        dialog.close()
 
 
 class TestRegexConfigPersistence:

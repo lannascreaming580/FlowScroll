@@ -1,18 +1,31 @@
 import re
+from functools import lru_cache
 
 from FlowScroll.core.config import STATE_LOCK, cfg, runtime
 from FlowScroll.platform import OS_NAME
 from FlowScroll.services.logging_service import logger
 
 
+_INVALID_REGEX = object()
+
+
+@lru_cache(maxsize=256)
+def _compile_regex(keyword: str):
+    """缓存正则编译结果，避免在输入热路径中重复编译。"""
+    try:
+        return re.compile(keyword, re.IGNORECASE)
+    except re.error:
+        logger.debug(f"Invalid regex pattern skipped: {keyword}")
+        return _INVALID_REGEX
+
+
 def _match_keyword(keyword: str, target: str, use_regex: bool) -> bool:
     """根据配置选择模糊匹配或正则匹配。"""
     if use_regex:
-        try:
-            return bool(re.search(keyword, target, re.IGNORECASE))
-        except re.error:
-            logger.debug(f"Invalid regex pattern skipped: {keyword}")
+        compiled = _compile_regex(keyword)
+        if compiled is _INVALID_REGEX:
             return False
+        return bool(compiled.search(target))
     return keyword.lower() in target
 
 
