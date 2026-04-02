@@ -79,7 +79,7 @@ def build_parameter_tab(main_window):
         "ic_size.svg",
         tr("param.overlay_size"),
         cfg.overlay_size,
-        0,
+        20,
         150,
         lambda v: _persist_config_change(
             main_window,
@@ -315,6 +315,15 @@ def build_advanced_tab(main_window):
         cfg.disable_fullscreen,
         lambda v: _persist_config_change(main_window, "disable_fullscreen", v),
         style_sheet="color: #FCA5A5;",
+    )
+    adv_layout.addWidget(create_h_line())
+
+    main_window.ui_widgets["hide_overlay"] = add_toggle_row(
+        adv_layout,
+        "hide_overlay",
+        tr("tab.advanced.hide_overlay"),
+        cfg.hide_overlay,
+        lambda v: _persist_config_change(main_window, "hide_overlay", v),
     )
     adv_layout.addWidget(create_h_line())
 

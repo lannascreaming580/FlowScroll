@@ -7,22 +7,31 @@ from FlowScroll.core.config import cfg
 
 
 class ResizableOverlay(QWidget):
+    MIN_RENDER_SIZE = 20  # 最小渲染尺寸，避免渲染异常
+
     def __init__(self):
         super().__init__()
-        flags = Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+        flags = (
+            Qt.FramelessWindowHint
+            | Qt.WindowStaysOnTopHint
+            | Qt.WindowTransparentForInput
+        )
         if OS_NAME == "Windows":
             flags |= Qt.Tool
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_ShowWithoutActivating)
         self.base_size = 60.0
-        self.update_geometry(int(cfg.overlay_size))
+        self._overlay_size = int(cfg.overlay_size)
+        self.update_geometry(self._overlay_size)
         self.direction = "neutral"
         self.preview_timer = QTimer()
         self.preview_timer.setSingleShot(True)
         self.preview_timer.timeout.connect(self.hide)
 
     def update_geometry(self, size):
+        self._overlay_size = size
+        size = max(size, self.MIN_RENDER_SIZE)
         self.setFixedSize(size, size)
         self.update()
 

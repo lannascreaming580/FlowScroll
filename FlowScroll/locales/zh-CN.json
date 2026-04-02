@@ -70,6 +70,7 @@
   "tab.advanced.minimize_to_tray": "关闭后最小化到托盘",
   "tab.advanced.autorun": "开机自动启动并在后台运行",
   "tab.advanced.disable_fullscreen": "全屏模式下禁用",
+  "tab.advanced.hide_overlay": "隐藏导航准星",
   "tab.advanced.reverse_btn": "配置滚轮方向反转",
   "tab.advanced.work_mode_btn": "配置工作模式",
   "tab.advanced.filter_mode_btn": "配置应用过滤模式",

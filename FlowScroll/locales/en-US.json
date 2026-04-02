@@ -72,6 +72,7 @@
   "tab.advanced.minimize_to_tray": "Minimize to tray when closing",
   "tab.advanced.autorun": "Run at startup in background",
   "tab.advanced.disable_fullscreen": "Disable in fullscreen",
+  "tab.advanced.hide_overlay": "Hide navigation indicator",
   "tab.advanced.reverse_btn": "Configure Reverse Direction",
   "tab.advanced.work_mode_btn": "Configure Work Mode",
   "tab.advanced.filter_mode_btn": "Configure App Filter",

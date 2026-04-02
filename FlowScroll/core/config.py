@@ -141,6 +141,8 @@ class GlobalConfig:
         self.reverse_y = False
         self.reverse_x = False
 
+        self.hide_overlay = False  # 是否隐藏准星
+
         self.activation_mode = 0  # 0=点击中键启用/关闭, 1=长按中键时启用
         self.activation_compat_mode = False
         self.activation_delay_ms = 0
@@ -173,6 +175,7 @@ class GlobalConfig:
             "activation_hotkey_hold": self.activation_hotkey_hold,
             "reverse_y": self.reverse_y,
             "reverse_x": self.reverse_x,
+            "hide_overlay": self.hide_overlay,
             "filter_mode": self.filter_mode,
             "filter_blacklist": self.filter_blacklist,
             "filter_whitelist": self.filter_whitelist,
@@ -210,6 +213,7 @@ class GlobalConfig:
             "activation_hotkey_hold": self.activation_hotkey_hold,
             "reverse_y": self.reverse_y,
             "reverse_x": self.reverse_x,
+            "hide_overlay": self.hide_overlay,
             "filter_mode": self.filter_mode,
             "filter_blacklist": self.filter_blacklist,
             "filter_whitelist": self.filter_whitelist,
@@ -238,6 +242,7 @@ class GlobalConfig:
         self.activation_hotkey_hold = data.get("activation_hotkey_hold", "")
         self.reverse_y = data.get("reverse_y", False)
         self.reverse_x = data.get("reverse_x", False)
+        self.hide_overlay = data.get("hide_overlay", False)
         self.filter_mode = data.get("filter_mode", 0)
         legacy_list = data.get("filter_list", [])
         self.filter_blacklist = data.get("filter_blacklist")

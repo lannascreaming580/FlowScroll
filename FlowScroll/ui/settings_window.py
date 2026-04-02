@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pynput import mouse
 
 from PySide6.QtWidgets import (
@@ -345,7 +345,9 @@ class MainWindow(QMainWindow):
         if not hasattr(self, "language_menu"):
             self._build_language_menu()
         self._sync_language_menu_checks()
-        self.language_menu.exec(self.btn_language.mapToGlobal(self.btn_language.rect().bottomLeft()))
+        self.language_menu.exec(
+            self.btn_language.mapToGlobal(self.btn_language.rect().bottomLeft())
+        )
 
     def _apply_language(self, language_code: str):
         set_ui_language(language_code)
@@ -515,7 +517,11 @@ class MainWindow(QMainWindow):
         self.ui_widgets["enable_horizontal"].setChecked(new_state)
         self.tray_manager.show_message(
             tr("main.toggle_horizontal.title"),
-            tr("main.toggle_horizontal.status_on" if new_state else "main.toggle_horizontal.status_off"),
+            tr(
+                "main.toggle_horizontal.status_on"
+                if new_state
+                else "main.toggle_horizontal.status_off"
+            ),
         )
 
     def open_webdav_settings(self):
@@ -567,7 +573,9 @@ class MainWindow(QMainWindow):
             self.sender().blockSignals(True)
             self.sender().setChecked(not checked)
             self.sender().blockSignals(False)
-            QMessageBox.warning(self, tr("main.settings_failed.title"), tr("main.settings_failed.body"))
+            QMessageBox.warning(
+                self, tr("main.settings_failed.title"), tr("main.settings_failed.body")
+            )
 
     def _confirm_preset_action(self, title, text):
         reply = QMessageBox.question(
@@ -584,12 +592,17 @@ class MainWindow(QMainWindow):
         if suggested in BUILTIN_PRESETS:
             suggested = ""
         text, ok = QInputDialog.getText(
-            self, tr("main.preset.save_title"), tr("main.preset.save_prompt"), text=suggested
+            self,
+            tr("main.preset.save_title"),
+            tr("main.preset.save_prompt"),
+            text=suggested,
         )
         if ok and text:
             if text in BUILTIN_PRESETS:
                 QMessageBox.warning(
-                    self, tr("main.preset.builtin_warning_title"), tr("main.preset.builtin_warning_body")
+                    self,
+                    tr("main.preset.builtin_warning_title"),
+                    tr("main.preset.builtin_warning_body"),
                 )
                 return
             if text in self.presets and not self._confirm_preset_action(
@@ -603,7 +616,11 @@ class MainWindow(QMainWindow):
     def delete_preset(self):
         name = self.combo_presets.currentText()
         if name in BUILTIN_PRESETS:
-            QMessageBox.warning(self, tr("main.preset.delete_builtin_title"), tr("main.preset.delete_builtin_body"))
+            QMessageBox.warning(
+                self,
+                tr("main.preset.delete_builtin_title"),
+                tr("main.preset.delete_builtin_body"),
+            )
             return
         if name not in self.presets:
             return
@@ -640,6 +657,8 @@ class MainWindow(QMainWindow):
         self.update_hotkey_label()
 
     def on_show_overlay(self):
+        if cfg.hide_overlay:
+            return
         self.overlay.set_direction("neutral")
         self.overlay.move(
             int(QCursor.pos().x() - cfg.overlay_size / 2),
