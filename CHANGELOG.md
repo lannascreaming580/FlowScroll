@@ -6,6 +6,12 @@
 
 - 暂无
 
+## v1.7.5
+
+### Fixed
+- 修复自动语言识别优先读取 Windows UI 语言与 Qt 系统语言的逻辑，避免在 Windows 环境下错误回退到 `locale` 或环境变量
+- 修复 `test_get_system_language_falls_back_to_env` 在 Windows CI 上未隔离系统语言探测器导致的误失败，确保该测试只验证环境变量回退链
+
 ## v1.7.4
 
 ### Added

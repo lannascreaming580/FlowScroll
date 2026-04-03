@@ -1,6 +1,7 @@
 import json
 import locale
 import os
+import sys
 from pathlib import Path
 
 from FlowScroll.core.config import STATE_LOCK, cfg
@@ -46,7 +47,51 @@ def normalize_language(value: str) -> str:
     return AUTO_LANGUAGE
 
 
+def _get_windows_ui_language() -> str:
+    if sys.platform != "win32":
+        return ""
+
+    try:
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        lang_id = kernel32.GetUserDefaultUILanguage()
+        tag = locale.windows_locale.get(lang_id, "")
+        normalized = _normalize_tag(tag)
+        if normalized in SUPPORTED_LANGUAGES:
+            return normalized
+
+        buffer = ctypes.create_unicode_buffer(85)
+        if kernel32.GetUserDefaultLocaleName(buffer, len(buffer)):
+            normalized = _normalize_tag(buffer.value)
+            if normalized in SUPPORTED_LANGUAGES:
+                return normalized
+    except Exception:
+        pass
+
+    return ""
+
+
+def _get_qt_system_language() -> str:
+    try:
+        from PySide6.QtCore import QLocale
+
+        for tag in (QLocale.system().name(), QLocale.system().bcp47Name()):
+            normalized = _normalize_tag(tag)
+            if normalized in SUPPORTED_LANGUAGES:
+                return normalized
+    except Exception:
+        pass
+
+    return ""
+
+
 def get_system_language() -> str:
+    for detector in (_get_windows_ui_language, _get_qt_system_language):
+        detected = detector()
+        if detected:
+            return detected
+
     candidates = []
     try:
         current_locale = locale.getlocale()[0]
