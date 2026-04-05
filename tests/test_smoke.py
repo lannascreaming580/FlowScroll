@@ -1,5 +1,6 @@
 """配置系统与凭据服务的基础 smoke test。"""
 
+import builtins
 import importlib
 import json
 import os
@@ -15,6 +16,80 @@ import pytest
 
 
 class TestGlobalConfig:
+    def test_default_windows_config_dir_uses_appdata(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+
+        monkeypatch.setattr(config_module.os, "name", "nt")
+        monkeypatch.setattr(config_module.os.sys, "platform", "win32")
+        monkeypatch.setenv("APPDATA", r"C:\Users\Test\AppData\Roaming")
+
+        assert config_module.get_default_config_dir() == (
+            r"C:\Users\Test\AppData\Roaming\FlowScroll"
+        )
+
+    def test_custom_config_file_env_overrides_default(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+
+        monkeypatch.delenv(config_module.CONFIG_DIR_ENV_VAR, raising=False)
+        monkeypatch.setenv(
+            config_module.CONFIG_FILE_ENV_VAR,
+            r"D:\Portable\FlowScroll\custom.json",
+        )
+
+        assert config_module.get_config_file() == r"D:\Portable\FlowScroll\custom.json"
+
+    def test_custom_config_dir_env_builds_windows_path(self, monkeypatch):
+        import FlowScroll.core.config as config_module
+
+        monkeypatch.delenv(config_module.CONFIG_FILE_ENV_VAR, raising=False)
+        monkeypatch.setenv(
+            config_module.CONFIG_DIR_ENV_VAR,
+            r"D:\Portable\FlowScroll",
+        )
+
+        assert config_module.get_config_file() == (
+            r"D:\Portable\FlowScroll\FlowScroll_config.json"
+        )
+
+    def test_persisted_config_pointer_overrides_default(self, monkeypatch, tmp_path):
+        import FlowScroll.core.config as config_module
+
+        pointer_file = tmp_path / "config_path.json"
+        default_file = tmp_path / "FlowScroll" / "FlowScroll_config.json"
+        custom_file = tmp_path / "Portable" / "FlowScroll.json"
+
+        monkeypatch.delenv(config_module.CONFIG_FILE_ENV_VAR, raising=False)
+        monkeypatch.delenv(config_module.CONFIG_DIR_ENV_VAR, raising=False)
+        monkeypatch.setattr(config_module, "CONFIG_FILE", str(default_file))
+        monkeypatch.setattr(config_module, "get_config_pointer_file", lambda: str(pointer_file))
+
+        config_module.set_persisted_config_file(str(custom_file))
+
+        assert config_module.get_persisted_config_file() == str(custom_file.resolve())
+        assert config_module.get_config_file() == str(custom_file.resolve())
+        assert config_module.get_config_override_source() == "custom"
+
+    def test_resetting_persisted_config_pointer_returns_to_default(
+        self, monkeypatch, tmp_path
+    ):
+        import FlowScroll.core.config as config_module
+
+        pointer_file = tmp_path / "config_path.json"
+        default_file = tmp_path / "FlowScroll" / "FlowScroll_config.json"
+        custom_file = tmp_path / "Portable" / "FlowScroll.json"
+
+        monkeypatch.delenv(config_module.CONFIG_FILE_ENV_VAR, raising=False)
+        monkeypatch.delenv(config_module.CONFIG_DIR_ENV_VAR, raising=False)
+        monkeypatch.setattr(config_module, "CONFIG_FILE", str(default_file))
+        monkeypatch.setattr(config_module, "get_config_pointer_file", lambda: str(pointer_file))
+
+        config_module.set_persisted_config_file(str(custom_file))
+        config_module.set_persisted_config_file(None)
+
+        assert config_module.get_persisted_config_file() == ""
+        assert config_module.get_config_file() == str(default_file.resolve())
+        assert config_module.get_config_override_source() == "default"
+
     def test_default_values(self):
         from FlowScroll.core.config import GlobalConfig
 
@@ -137,7 +212,6 @@ class TestPresetManager:
 
     def test_load_and_save_roundtrip(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         presets_data = {
@@ -155,7 +229,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
             pm.load_from_file()
             assert pm.current_preset_name == "MyPreset"
@@ -165,7 +238,6 @@ class TestPresetManager:
 
     def test_load_failure_clears_stale_presets(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         fd, path = tempfile.mkstemp(suffix=".json")
@@ -175,7 +247,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
             pm.presets = {"StalePreset": {"sensitivity": 3.0}}
             pm.current_preset_name = "StalePreset"
@@ -189,7 +260,6 @@ class TestPresetManager:
 
     def test_save_includes_current_config(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.core.config import cfg
         from FlowScroll.ui.preset_manager import PresetManager
 
@@ -197,7 +267,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             cfg.sensitivity = 4.0
             cfg.speed_factor = 1.25
             cfg.webdav_url = "https://example.com/dav/"
@@ -221,7 +290,6 @@ class TestPresetManager:
 
     def test_load_prefers_current_config_when_present(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config(
@@ -240,7 +308,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
 
             pm.load_from_file()
@@ -254,7 +321,6 @@ class TestPresetManager:
 
     def test_load_restores_separate_webdav_settings(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config(
@@ -274,7 +340,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
 
             pm.load_from_file()
@@ -287,7 +352,6 @@ class TestPresetManager:
 
     def test_load_migrates_legacy_webdav_settings(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config(
@@ -304,7 +368,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
 
             pm.load_from_file()
@@ -317,14 +380,12 @@ class TestPresetManager:
 
     def test_invalid_preset_structure_falls_back_to_defaults(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config({"presets": [], "last_used": []})
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
 
             pm.load_from_file()
@@ -336,14 +397,12 @@ class TestPresetManager:
 
     def test_password_not_saved_to_file(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config({"presets": {}, "last_used": "长文档/表格"})
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
             pm.load_from_file()
             pm.save_preset("LeakTest")
@@ -362,7 +421,6 @@ class TestPresetManager:
 
     def test_loading_preset_does_not_override_webdav_settings(self, monkeypatch):
         import FlowScroll.core.config as config_module
-        import FlowScroll.ui.preset_manager as pm_module
         from FlowScroll.ui.preset_manager import PresetManager
 
         path = self._make_temp_config(
@@ -385,7 +443,6 @@ class TestPresetManager:
 
         try:
             monkeypatch.setattr(config_module, "CONFIG_FILE", path)
-            monkeypatch.setattr(pm_module, "CONFIG_FILE", path)
             pm = PresetManager()
             pm.load_from_file()
 
@@ -395,6 +452,94 @@ class TestPresetManager:
             assert config_module.cfg.webdav_username == "alice"
         finally:
             os.unlink(path)
+
+    def test_load_migrates_legacy_home_config_to_new_default_path(
+        self, monkeypatch, tmp_path
+    ):
+        import FlowScroll.core.config as config_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        legacy_path = tmp_path / ".FlowScroll_config.json"
+        new_path = tmp_path / "AppData" / "Roaming" / "FlowScroll" / "FlowScroll_config.json"
+
+        legacy_path.write_text(
+            json.dumps(
+                {
+                    "presets": {},
+                    "last_used": config_module.DEFAULT_PRESET_NAME,
+                    "current_config": {
+                        "sensitivity": 4.25,
+                        "speed_factor": 1.5,
+                    },
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(config_module, "LEGACY_CONFIG_FILE", str(legacy_path))
+        monkeypatch.setattr(config_module, "CONFIG_FILE", str(new_path))
+
+        pm = PresetManager()
+        pm.load_from_file()
+
+        assert config_module.cfg.sensitivity == 4.25
+        assert new_path.exists()
+        saved = json.loads(new_path.read_text(encoding="utf-8"))
+        assert saved["current_config"]["sensitivity"] == 4.25
+
+    def test_load_does_not_rewrite_when_windows_paths_only_differ_in_case(
+        self, monkeypatch, tmp_path
+    ):
+        import FlowScroll.core.config as config_module
+        from FlowScroll.ui.preset_manager import PresetManager
+
+        config_path = tmp_path / "config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "presets": {},
+                    "last_used": config_module.DEFAULT_PRESET_NAME,
+                    "current_config": {"sensitivity": 3.5},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(
+            "FlowScroll.ui.preset_manager.get_config_load_candidates",
+            lambda: [r"c:\portable\flowscroll\config.json"],
+        )
+        monkeypatch.setattr(
+            "FlowScroll.ui.preset_manager.get_config_file",
+            lambda: r"C:/Portable/FlowScroll/config.json",
+        )
+        monkeypatch.setattr(
+            "FlowScroll.ui.preset_manager.os.path.exists",
+            lambda path: str(path).lower() == r"c:\portable\flowscroll\config.json",
+        )
+
+        original_open = builtins.open
+
+        def fake_open(path, mode="r", encoding=None):
+            if "r" in mode and str(path).lower() == r"c:\portable\flowscroll\config.json":
+                return original_open(config_path, mode, encoding=encoding)
+            return original_open(path, mode, encoding=encoding)
+
+        monkeypatch.setattr("builtins.open", fake_open)
+        save_calls = []
+        monkeypatch.setattr(
+            PresetManager,
+            "save_to_file",
+            lambda self: save_calls.append("called"),
+        )
+
+        pm = PresetManager()
+        pm.load_from_file()
+
+        assert config_module.cfg.sensitivity == 3.5
+        assert save_calls == []
 
 
 class TestCredentialService:
@@ -1337,8 +1482,17 @@ class TestAdvancedTab:
             def open_webdav_settings(self):
                 return None
 
+            def open_config_storage_dialog(self):
+                return None
+
+            def reset_config_storage_path(self):
+                return None
+
             def refresh_input_hook_status_ui(self):
                 self.refreshed = True
+
+            def refresh_config_storage_ui(self):
+                return None
 
             def update_hotkey_label(self):
                 if hasattr(self, "lbl_hotkey"):

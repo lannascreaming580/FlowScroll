@@ -135,7 +135,7 @@ Includes 4 built-in presets for common scenarios:
 - Long Docs/Sheets (default)
 - Gentle/Trackpad-like
 
-You can save custom presets in the app. Config is stored at `~/.FlowScroll_config.json`.
+You can save custom presets in the app. By default, the config is stored in an app data directory: Windows `%AppData%\FlowScroll\FlowScroll_config.json`, macOS `~/Library/Application Support/FlowScroll/FlowScroll_config.json`, Linux `~/.config/FlowScroll/FlowScroll_config.json`. You can also override the location with `FLOWSCROLL_CONFIG_FILE` or `FLOWSCROLL_CONFIG_DIR`.
 
 ### Core Parameters
 

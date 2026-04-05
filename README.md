@@ -157,7 +157,7 @@ FlowScroll 内置 4 个预设，开箱即用。首次启动默认使用 **长文
 | **长文档 / 表格** ★ | PDF、超长表格、视频时间轴 | `2.0` | `2.0` | `20` | 开 |
 | **轻柔 / 接近触控板** | 喜欢更平缓手感的用户 | `1.2` | `1.5` | `10` | 关 |
 
-> ★ 默认预设。也可在 "参数调校 → 配置预设" 中保存自定义预设，配置写入 `~/.FlowScroll_config.json`。
+> ★ 默认预设。也可在 "参数调校 → 配置预设" 中保存自定义预设。默认情况下，Windows 写入 `%AppData%\FlowScroll\FlowScroll_config.json`，macOS 写入 `~/Library/Application Support/FlowScroll/FlowScroll_config.json`，Linux 写入 `~/.config/FlowScroll/FlowScroll_config.json`。也支持通过环境变量 `FLOWSCROLL_CONFIG_FILE` 或 `FLOWSCROLL_CONFIG_DIR` 自定义存储位置。
 
 ### 核心参数
 

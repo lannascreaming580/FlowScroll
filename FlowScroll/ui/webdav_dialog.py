@@ -12,7 +12,7 @@ from FlowScroll.constants import (
     WEBDAV_DIALOG_MIN_HEIGHT,
     WEBDAV_DIALOG_MIN_WIDTH,
 )
-from FlowScroll.core.config import CONFIG_FILE, cfg
+from FlowScroll.core.config import cfg, ensure_config_dir, get_config_file
 from FlowScroll.i18n import tr
 from FlowScroll.services.credential_service import credential_service
 from FlowScroll.services.logging_service import logger
@@ -504,7 +504,7 @@ if QDialog is not None:
             if parent is not None and hasattr(parent, "save_presets_to_file"):
                 parent.save_presets_to_file()
             else:
-                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                with open(ensure_config_dir(get_config_file()), "w", encoding="utf-8") as f:
                     json.dump(
                         {
                             "presets": {},

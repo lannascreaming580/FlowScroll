@@ -378,8 +378,20 @@ def build_advanced_tab(main_window):
     btn_webdav.clicked.connect(main_window.open_webdav_settings)
     adv_layout.addWidget(btn_webdav)
 
+    btn_storage = QPushButton(tr("tab.advanced.config_path_btn"))
+    btn_storage.setObjectName("BtnAdv")
+    btn_storage.setCursor(Qt.PointingHandCursor)
+    storage_path = resource_path(os.path.join("FlowScroll", "resources", "ic_folder.svg"))
+    if os.path.exists(storage_path):
+        btn_storage.setIcon(QIcon(storage_path))
+        btn_storage.setIconSize(QSize(18, 18))
+    btn_storage.clicked.connect(main_window.open_config_storage_dialog)
+    main_window.ui_widgets["config_path_button"] = btn_storage
+    adv_layout.addWidget(btn_storage)
+
     tab2_layout.addWidget(adv_card)
     main_window.refresh_input_hook_status_ui()
+    main_window.refresh_config_storage_ui()
 
     # 添加拉伸项，让内容自然贴顶显示。
     tab2_layout.addStretch()

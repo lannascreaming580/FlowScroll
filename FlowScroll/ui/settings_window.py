@@ -31,6 +31,8 @@ from FlowScroll.core.config import (
     runtime,
     BUILTIN_PRESETS,
     DEFAULT_PRESET_NAME,
+    get_config_file,
+    get_config_override_source,
 )
 from FlowScroll.core.engine import ScrollEngine
 from FlowScroll.core.rules import is_current_app_allowed
@@ -199,6 +201,29 @@ class MainWindow(QMainWindow):
 
     def save_presets_to_file(self):
         self.preset_manager.save_to_file()
+
+    def get_config_storage_summary(self):
+        current_path = get_config_file()
+        source = get_config_override_source()
+        source_key = {
+            "default": "tab.advanced.config_path_source_default",
+            "custom": "tab.advanced.config_path_source_custom",
+            "env_file": "tab.advanced.config_path_source_env_file",
+            "env_dir": "tab.advanced.config_path_source_env_dir",
+        }.get(source, "tab.advanced.config_path_source_default")
+        return tr("tab.advanced.config_path_summary", source=tr(source_key), path=current_path)
+
+    def refresh_config_storage_ui(self):
+        btn = self.ui_widgets.get("config_path_button")
+        if btn is not None:
+            btn.setToolTip(self.get_config_storage_summary())
+
+    def open_config_storage_dialog(self):
+        from FlowScroll.ui.dialogs import ConfigStorageDialog
+
+        dialog = ConfigStorageDialog(self)
+        dialog.exec()
+        self.refresh_config_storage_ui()
 
     def _all_preset_names(self):
         return self.preset_manager.get_all_names()
@@ -655,6 +680,7 @@ class MainWindow(QMainWindow):
             self.ui_widgets["disable_fullscreen"].setChecked(cfg.disable_fullscreen)
 
         self.update_hotkey_label()
+        self.refresh_config_storage_ui()
 
     def on_show_overlay(self):
         if cfg.hide_overlay:

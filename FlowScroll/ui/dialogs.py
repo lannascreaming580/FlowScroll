@@ -1,4 +1,7 @@
+import os
+
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QVBoxLayout,
     QHBoxLayout,
@@ -12,14 +15,22 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QSizePolicy,
+    QLineEdit,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon
 
 from FlowScroll.core.config import STATE_LOCK, cfg, runtime
+from FlowScroll.core.config import (
+    get_config_file,
+    get_config_override_source,
+    set_persisted_config_file,
+)
 from FlowScroll.core.filter_validation import collect_invalid_regex_lines
 from FlowScroll.i18n import tr
 from FlowScroll.ui.components import HotkeyEdit
 from FlowScroll.ui.helpers import create_card, create_h_line
+from FlowScroll.ui.utils import resource_path
 from FlowScroll.ui.styles import (
     get_dialog_stylesheet,
     get_checkbox_style,
@@ -682,3 +693,163 @@ class InertiaSettingsDialog(QDialog):
         cfg.inertia_friction_ms = self.friction_slider.value()
         cfg.inertia_threshold = float(self.threshold_slider.value())
         self.accept()
+
+
+class ConfigStorageDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._changed = False
+        self._last_applied_path = get_config_file()
+
+        self.setWindowTitle(tr("dialog.config_path.title"))
+        self.setMinimumWidth(520)
+        self.setStyleSheet(get_dialog_stylesheet())
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
+
+        card, card_layout = create_card()
+
+        hint_label = QLabel(tr("dialog.config_path.hint"))
+        hint_label.setWordWrap(True)
+        hint_label.setStyleSheet("color: #94A3B8; font-size: 13px; line-height: 1.5;")
+        card_layout.addWidget(hint_label)
+
+        self.locked_label = QLabel(tr("tab.advanced.config_path_env_locked"))
+        self.locked_label.setWordWrap(True)
+        self.locked_label.setStyleSheet(
+            "color: #FDE68A; background: rgba(120, 53, 15, 0.28); "
+            "border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 10px; "
+            "padding: 10px 12px; line-height: 1.4;"
+        )
+        card_layout.addWidget(self.locked_label)
+
+        card_layout.addWidget(create_h_line())
+
+        path_title = QLabel(tr("dialog.config_path.current_path_label"))
+        path_title.setStyleSheet("font-size: 15px; font-weight: 700; color: #E2E8F0;")
+        card_layout.addWidget(path_title)
+
+        path_row = QHBoxLayout()
+        path_row.setSpacing(10)
+
+        self.path_edit = QLineEdit()
+        self.path_edit.setClearButtonEnabled(True)
+        self.path_edit.returnPressed.connect(self.apply_path_from_input_with_notice)
+        self.path_edit.editingFinished.connect(self.apply_path_from_input)
+        path_row.addWidget(self.path_edit, 1)
+
+        self.btn_pick_path = QPushButton()
+        self.btn_pick_path.setObjectName("BtnIcon")
+        self.btn_pick_path.setCursor(Qt.PointingHandCursor)
+        self.btn_pick_path.setToolTip(tr("dialog.config_path.change_btn"))
+        folder_icon_path = resource_path(
+            os.path.join("FlowScroll", "resources", "ic_folder.svg")
+        )
+        if os.path.exists(folder_icon_path):
+            self.btn_pick_path.setIcon(QIcon(folder_icon_path))
+            self.btn_pick_path.setIconSize(QSize(18, 18))
+        else:
+            self.btn_pick_path.setText("...")
+        self.btn_pick_path.clicked.connect(self.choose_path)
+        path_row.addWidget(self.btn_pick_path)
+
+        card_layout.addLayout(path_row)
+
+        layout.addWidget(card)
+        layout.addStretch()
+
+        self.btn_reset = QPushButton(tr("tab.advanced.config_path_reset_btn"))
+        self.btn_reset.setObjectName("BtnDanger")
+        self.btn_reset.setCursor(Qt.PointingHandCursor)
+        self.btn_reset.clicked.connect(self.reset_to_default)
+        self.btn_reset.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        layout.addWidget(self.btn_reset)
+
+        self.btn_copy_path = QPushButton(tr("dialog.config_path.copy_btn"))
+        self.btn_copy_path.setObjectName("BtnPrimary")
+        self.btn_copy_path.setCursor(Qt.PointingHandCursor)
+        self.btn_copy_path.clicked.connect(self.copy_current_path)
+        self.btn_copy_path.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        layout.addWidget(self.btn_copy_path)
+
+        self.refresh_state()
+        self.resize(560, max(260, self.sizeHint().height()))
+
+    def _save_parent_config(self):
+        parent = self.parent()
+        if parent is not None and hasattr(parent, "save_presets_to_file"):
+            parent.save_presets_to_file()
+
+    def _apply_path(self, path: str | None):
+        set_persisted_config_file(path)
+        self._changed = True
+        self._last_applied_path = get_config_file()
+        self._save_parent_config()
+        self.refresh_state()
+
+    def refresh_state(self):
+        source = get_config_override_source()
+        env_override = source.startswith("env_")
+
+        if self.path_edit.text().strip() != self._last_applied_path:
+            self.path_edit.setText(self._last_applied_path)
+        self.locked_label.setVisible(env_override)
+        self.btn_pick_path.setEnabled(not env_override)
+        self.path_edit.setEnabled(not env_override)
+        self.btn_reset.setEnabled(source == "custom")
+        self.btn_copy_path.setEnabled(True)
+
+    def choose_path(self):
+        selected_path, _ = QFileDialog.getSaveFileName(
+            self,
+            tr("tab.advanced.config_path_dialog_title"),
+            get_config_file(),
+            tr("tab.advanced.config_path_dialog_filter"),
+        )
+        if not selected_path:
+            return
+
+        self._apply_path(selected_path)
+        QMessageBox.information(
+            self,
+            tr("webdav.success_title"),
+            tr("tab.advanced.config_path_changed", path=get_config_file()),
+        )
+
+    def apply_path_from_input(self):
+        text = self.path_edit.text().strip()
+        if not text or text == self._last_applied_path:
+            self.path_edit.setText(self._last_applied_path)
+            return False
+        self._apply_path(text)
+        return True
+
+    def apply_path_from_input_with_notice(self):
+        if not self.apply_path_from_input():
+            return
+        QMessageBox.information(
+            self,
+            tr("webdav.success_title"),
+            tr("tab.advanced.config_path_changed", path=get_config_file()),
+        )
+
+    def reset_to_default(self):
+        if get_config_override_source() != "custom":
+            return
+
+        self._apply_path(None)
+        QMessageBox.information(
+            self,
+            tr("webdav.success_title"),
+            tr("tab.advanced.config_path_reset_done", path=get_config_file()),
+        )
+
+    def copy_current_path(self):
+        QApplication.clipboard().setText(self.path_edit.text().strip() or get_config_file())
+        QMessageBox.information(
+            self,
+            tr("webdav.success_title"),
+            tr("dialog.config_path.copy_done"),
+        )

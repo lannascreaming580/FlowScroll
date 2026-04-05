@@ -3,10 +3,13 @@ import os
 from typing import Dict, List
 
 from FlowScroll.core.config import (
+    _paths_equal,
     BUILTIN_PRESETS,
-    CONFIG_FILE,
     DEFAULT_PRESET_NAME,
     cfg,
+    ensure_config_dir,
+    get_config_file,
+    get_config_load_candidates,
 )
 from FlowScroll.services.logging_service import logger
 
@@ -49,9 +52,15 @@ class PresetManager:
 
     def load_from_file(self) -> None:
         """从配置文件中加载预设和当前配置。"""
-        if os.path.exists(CONFIG_FILE):
+        loaded_from = None
+        for candidate in get_config_load_candidates():
+            if os.path.exists(candidate):
+                loaded_from = candidate
+                break
+
+        if loaded_from:
             try:
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                with open(loaded_from, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 if not isinstance(data, dict):
@@ -93,6 +102,9 @@ class PresetManager:
                     self.current_preset_name = DEFAULT_PRESET_NAME
                     cfg.from_dict(BUILTIN_PRESETS[DEFAULT_PRESET_NAME])
                 self._load_webdav_settings(data, current_config, last_used)
+                target_path = get_config_file()
+                if not _paths_equal(loaded_from, target_path):
+                    self.save_to_file()
                 return
             except Exception as e:
                 logger.warning(f"Failed to load presets from file: {e}")
@@ -105,8 +117,9 @@ class PresetManager:
     def save_to_file(self) -> None:
         """将预设与当前配置写回配置文件。"""
         data = self._serialize_state()
+        config_path = ensure_config_dir()
         try:
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
         except Exception as e:
             logger.error(f"Failed to save presets to file: {e}")
