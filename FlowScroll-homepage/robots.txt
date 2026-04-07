@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# After you generate sitemap.xml for your production domain,
+# add a Sitemap line here, for example:
+# Sitemap: https://flowscroll.example.com/sitemap.xml

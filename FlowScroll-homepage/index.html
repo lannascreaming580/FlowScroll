@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowScroll - 把浏览器式中键自动滚动带到桌面应用</title>
+    <meta
+      name="description"
+      content="FlowScroll 是一个系统级中键自动滚动工具，可把浏览器式自动滚动扩展到 PDF、代码编辑器、表格、时间轴和长网页，并支持惯性、横向滚动、应用过滤和 WebDAV 同步。"
+    />
+    <meta property="og:title" content="FlowScroll - 把浏览器式中键自动滚动带到桌面应用" />
+    <meta property="og:description" content="为 PDF、代码编辑器、表格、时间轴和长网页提供浏览器式中键自动滚动体验。" />
+    <meta property="og:site_name" content="FlowScroll" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/1.jpg" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta name="robots" content="index,follow" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#edf3f8" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+    <script src="./seo.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="FlowScroll 首页">
+          <img src="./assets/favicon.svg" alt="FlowScroll Logo" />
+          <span>
+            <strong>FlowScroll</strong>
+            <small>全局中键滚动</small>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="站点导航">
+          <a href="#showcase">演示</a>
+          <a href="#workflow">上手</a>
+          <a href="#features">能力</a>
+          <a href="#downloads">下载</a>
+          <a href="#start">使用</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="header-actions">
+          <div class="lang-switch" aria-label="语言切换">
+            <a class="lang-link current" href="./index.html" aria-current="page">中</a>
+            <a class="lang-link" href="./en.html" lang="en">EN</a>
+          </div>
+          <a
+            class="ghost-button header-link-button"
+            id="repo-link"
+            href="https://github.com/CyrilPeng/FlowScroll"
+            target="_blank"
+            rel="noreferrer"
+          ><img class="button-logo github-logo" src="https://github.com/favicon.ico" alt="" aria-hidden="true" /><span>GitHub</span></a>
+          <a
+            class="ghost-button header-link-button"
+            id="gitee-link"
+            href="https://gitee.com/Cyril_P/FlowScroll"
+            target="_blank"
+            rel="noreferrer"
+          ><img class="button-logo gitee-logo" src="https://gitee.com/favicon.ico" alt="" aria-hidden="true" /><span>Gitee</span></a>
+          <a class="primary-button small" id="header-download-button" data-label="下载" href="#downloads">下载</a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero section">
+          <div class="hero-copy">
+            <span class="eyebrow">开源桌面工具</span>
+            <h1>把浏览器式中键自动滚动带到桌面应用</h1>
+            <p class="hero-text">
+              在 PDF、代码编辑器、表格、时间轴和长网页里，用中键进入连续滚动模式，并按需要调整惯性、横向滚动、过滤规则和同步方式。
+            </p>
+
+            <div class="hero-actions">
+              <a class="primary-button" id="hero-download-button" data-label="立即下载" href="#downloads">立即下载</a>
+              <a class="secondary-button" href="#showcase">查看演示</a>
+            </div>
+
+            <ul class="hero-points">
+              <li>点击启用 / 长按启用两种工作模式，可配独立启用键</li>
+              <li>平滑、惯性、死区、横向滚动与方向反转都可调</li>
+              <li>支持黑白名单、正则匹配、全屏停用、托盘常驻与 WebDAV 同步</li>
+            </ul>
+
+          </div>
+
+          <div class="hero-visual" aria-hidden="true">
+            <div class="visual-orbit orbit-a"></div>
+            <div class="visual-orbit orbit-b"></div>
+            <div class="hero-stage">
+              <article class="hero-preview hero-preview-main">
+                <span class="preview-label">主界面</span>
+                <div class="media-frame">
+                  <img
+                    src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/1.jpg"
+                    alt="FlowScroll 主界面截图"
+                  />
+                </div>
+              </article>
+
+              <article class="hero-preview hero-preview-side">
+                <span class="preview-label">丰富设置</span>
+                <div class="media-frame">
+                  <img
+                    src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/2.jpg"
+                    alt="FlowScroll 设置界面截图"
+                  />
+                </div>
+              </article>
+
+              <div class="hero-specs">
+                <span>点击 / 长按</span>
+                <span>平滑与惯性</span>
+                <span>横向滚动</span>
+                <span>黑白名单 / 正则</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="showcase">
+          <div class="section-heading wide">
+            <span class="eyebrow">演示</span>
+            <h2>先看界面和滚动效果，再决定要不要下载</h2>
+            <p>通过真实界面和演示，你可以直接判断它是否适合阅读长文档、浏览代码、查看表格和时间轴。</p>
+          </div>
+
+          <div class="showcase-grid">
+            <article class="showcase-card featured demo-card demo-reading-card">
+              <div class="media-frame wide">
+                <img
+                  src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo1.gif"
+                  alt="FlowScroll 滚动演示"
+                  loading="lazy"
+                />
+              </div>
+              <div class="card-copy">
+                <h3>阅读、文档与网页场景</h3>
+                <p>中键进入滚动模式后，鼠标偏移决定方向和速度。离中心越远，速度越快，适合长网页、PDF 和连续阅读场景。</p>
+                <p class="caption-note">演示图中的蓝色标记仅用于录屏展示鼠标位置，实际软件不会显示。</p>
+              </div>
+            </article>
+
+            <article class="showcase-card demo-card demo-horizontal-card">
+              <div class="media-frame">
+                <img
+                  src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo2.gif"
+                  alt="FlowScroll 横向滚动演示"
+                  loading="lazy"
+                />
+              </div>
+              <div class="card-copy compact">
+                <h3>横向内容也能顺手移动</h3>
+                <p>表格、时间轴、画布和超宽代码视图不再只能依赖滚动条或触控板。</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="workflow">
+          <div class="section-heading wide">
+            <span class="eyebrow">启动方式</span>
+            <h2>三种启动方式，适配不同使用习惯</h2>
+            <p>可以像浏览器那样点一下进入，也可以按住临时启用；如果还想保留原生中键行为，还能加启动延迟。</p>
+          </div>
+
+          <div class="workflow-grid">
+            <article class="mode-card">
+              <span class="mode-index">01</span>
+              <h3>点击启用 / 点击关闭</h3>
+              <p>最接近浏览器里的中键自动滚动。单击一次进入，再单击一次退出，适合持续阅读和浏览。</p>
+            </article>
+            <article class="mode-card">
+              <span class="mode-index">02</span>
+              <h3>长按启用 / 松开停止</h3>
+              <p>更像“按住一个键把鼠标变成触控板”。短时精确滚动更自然，也很适合搭配惯性使用。</p>
+            </article>
+            <article class="mode-card">
+              <span class="mode-index">03</span>
+              <h3>延迟启动</h3>
+              <p>如果你还想保留中键单击关闭标签页或浏览器原生行为，可以加 150 至 250ms 的启动延迟减少冲突。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="features">
+          <div class="section-heading">
+            <span class="eyebrow">核心能力</span>
+            <h2>围绕真实滚动场景做好的核心能力</h2>
+            <p>把滚动手感、兼容策略和同步放进同一套设置里，装好后就能按自己的习惯直接调整。</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <h3>两种启动方式与延迟启动</h3>
+              <p>支持点击启用、长按启用和延迟启动，在不同应用里更容易兼顾习惯和兼容性。</p>
+            </article>
+            <article class="feature-card">
+              <h3>平滑、惯性与横向滚动</h3>
+              <p>支持加速度、基础速度、死区、惯性和横向滚动调节，适合长文档、宽表格和时间轴。</p>
+            </article>
+            <article class="feature-card">
+              <h3>方向反转</h3>
+              <p>可以分别调整 X / Y 方向，适配不同滚动习惯和触控板式操作逻辑。</p>
+            </article>
+            <article class="feature-card">
+              <h3>应用过滤</h3>
+              <p>支持全局、黑名单、白名单三种模式，并可按正则表达式匹配规则。</p>
+            </article>
+            <article class="feature-card">
+              <h3>预设、托盘与全屏停用</h3>
+              <p>内置预设，可保存自定义配置；支持托盘常驻和全屏停用，减少打断和误触。</p>
+            </article>
+            <article class="feature-card">
+              <h3>WebDAV 云同步</h3>
+              <p>可以在多台设备之间同步滚动参数；密码优先交给系统凭据管理保存。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="downloads">
+          <div class="section-heading">
+            <span class="eyebrow">下载</span>
+            <h2>自动获取最新版本，直接下载</h2>
+            <p>页面会优先读取 GitHub Releases；如果 GitHub 无法访问，会自动切换到 Gitee Releases。</p>
+          </div>
+
+          <div class="status-banner" id="download-status" aria-live="polite">
+            正在读取 GitHub Releases 中的最新版本…
+          </div>
+
+          <div class="download-grid" id="download-grid">
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+          </div>
+
+          <div class="download-note">
+            <p>
+              如果自动获取失败，可直接打开 GitHub Releases 或 Gitee Releases 手动下载。
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="start">
+          <div class="section-heading">
+            <span class="eyebrow">首次使用</span>
+            <h2>下载后打开，三步开始</h2>
+            <p>它是绿色软件，下载后直接打开，再完成必要授权和简单设置即可。</p>
+          </div>
+
+          <div class="install-grid">
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">01</span>
+                <span class="install-kicker">下载并打开</span>
+              </div>
+              <h3>按平台拿到对应版本</h3>
+              <p>Windows 直接运行 <code>.exe</code>，macOS 打开 <code>.dmg</code>，Linux 运行 <code>.AppImage</code>。</p>
+              <div class="install-tags">
+                <span>Windows .exe</span>
+                <span>macOS .dmg</span>
+                <span>Linux .AppImage</span>
+              </div>
+            </article>
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">02</span>
+                <span class="install-kicker">首次授权</span>
+              </div>
+              <h3>只有需要的平台才要额外处理</h3>
+              <p>Windows 通常可以直接使用；macOS 需要辅助功能权限；Linux 更适合在 X11/Xorg 环境运行。</p>
+              <div class="install-tags">
+                <span>Windows 通常无需处理</span>
+                <span>macOS 辅助功能权限</span>
+                <span>Linux 建议 X11/Xorg</span>
+              </div>
+            </article>
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">03</span>
+                <span class="install-kicker">开始滚动</span>
+              </div>
+              <h3>默认预设已经能直接用</h3>
+              <p>首次打开后就可以开始滚动，再根据习惯决定使用点击启用、长按启用，或为中键开启延迟启动。</p>
+              <div class="install-tags">
+                <span>默认预设</span>
+                <span>点击启用</span>
+                <span>长按启用</span>
+                <span>延迟启动</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <div class="section-heading narrow">
+            <span class="eyebrow">FAQ</span>
+            <h2>使用前后最常见的几个问题</h2>
+          </div>
+          <div class="faq-list">
+            <details open>
+              <summary>会和浏览器自带的中键自动滚动冲突吗？</summary>
+              <p>可能会。如果你想在浏览器里保留原生中键行为，可以把浏览器进程加入黑名单，或者开启延迟启动减少冲突。</p>
+            </details>
+            <details>
+              <summary>为什么更推荐 Windows 版本？</summary>
+              <p>因为当前 Windows 版本完成度最高，直接下载打开也最省事。macOS 和 Linux 仍可用，但前置条件更多。</p>
+            </details>
+            <details>
+              <summary>macOS 需要额外做什么？</summary>
+              <p>通常需要授予辅助功能权限，才能监听全局鼠标和快捷键。这属于系统级输入工具的正常前置条件。</p>
+            </details>
+            <details>
+              <summary>Linux 为什么只写“实验性预览”？</summary>
+              <p>因为它目前主要面向 X11/Xorg 环境，Wayland 通常无法满足全局输入监听需求。</p>
+            </details>
+            <details>
+              <summary>会上传键盘内容或鼠标轨迹吗？</summary>
+              <p>不会。FlowScroll 只处理当前滚动状态和规则匹配，不记录输入文本，也不会长期保存鼠标轨迹。</p>
+            </details>
+            <details>
+              <summary>WebDAV 密码会写进配置文件吗？</summary>
+              <p>不会。同步密码优先交给系统凭据管理保存，不直接写入明文配置文件。</p>
+            </details>
+            <details>
+              <summary>如果自动获取下载版本失败怎么办？</summary>
+              <p>直接打开 GitHub Releases 或 Gitee Releases 即可；页面本身会优先尝试 GitHub，再自动回退到 Gitee。</p>
+            </details>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer">
+        <strong class="footer-title">FlowScroll</strong>
+        <p class="footer-note">把浏览器里的中键自动滚动，带到整个系统。</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowScroll - Browser-Style Middle-Click Autoscroll For Desktop Apps</title>
+    <meta
+      name="description"
+      content="FlowScroll is a system-wide middle-click autoscroll utility for PDFs, code editors, spreadsheets, timelines, and long pages, with inertia, horizontal scrolling, app filtering, and WebDAV sync."
+    />
+    <meta property="og:title" content="FlowScroll - Browser-Style Middle-Click Autoscroll For Desktop Apps" />
+    <meta property="og:description" content="Browser-style middle-click autoscroll for PDFs, code editors, spreadsheets, timelines, and long pages." />
+    <meta property="og:site_name" content="FlowScroll" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/1.jpg" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="robots" content="index,follow" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#edf3f8" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+    <script src="./seo.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="FlowScroll home">
+          <img src="./assets/favicon.svg" alt="FlowScroll Logo" />
+          <span>
+            <strong>FlowScroll</strong>
+            <small>System-wide Autoscroll</small>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Site navigation">
+          <a href="#showcase">Demo</a>
+          <a href="#workflow">Modes</a>
+          <a href="#features">Features</a>
+          <a href="#downloads">Download</a>
+          <a href="#start">First Run</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="header-actions">
+          <div class="lang-switch" aria-label="Language switcher">
+            <a class="lang-link" href="./index.html" lang="zh-CN">中</a>
+            <a class="lang-link current" href="./en.html" aria-current="page">EN</a>
+          </div>
+          <a
+            class="ghost-button header-link-button"
+            id="repo-link"
+            href="https://github.com/CyrilPeng/FlowScroll"
+            target="_blank"
+            rel="noreferrer"
+          ><img class="button-logo github-logo" src="https://github.com/favicon.ico" alt="" aria-hidden="true" /><span>GitHub</span></a>
+          <a
+            class="ghost-button header-link-button"
+            id="gitee-link"
+            href="https://gitee.com/Cyril_P/FlowScroll"
+            target="_blank"
+            rel="noreferrer"
+          ><img class="button-logo gitee-logo" src="https://gitee.com/favicon.ico" alt="" aria-hidden="true" /><span>Gitee</span></a>
+          <a class="primary-button small" id="header-download-button" data-label="Download" href="#downloads">Download</a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero section">
+          <div class="hero-copy">
+            <span class="eyebrow">Open source desktop utility</span>
+            <h1>Browser-style middle-click autoscroll for desktop apps</h1>
+            <p class="hero-text">
+              Use middle-click to enter continuous scrolling in PDFs, code editors, spreadsheets, timelines, and long pages, then tune inertia, horizontal movement, filtering, and sync to fit your workflow.
+            </p>
+
+            <div class="hero-actions">
+              <a class="primary-button" id="hero-download-button" data-label="Download" href="#downloads">Download</a>
+              <a class="secondary-button" href="#showcase">View Demo</a>
+            </div>
+
+            <ul class="hero-points">
+              <li>Two activation modes: click to toggle, or hold to activate, each with its own trigger key</li>
+              <li>Tunable inertia, dead zone, horizontal scrolling, and independent X/Y reverse direction</li>
+              <li>App blacklist and whitelist, regex rules, fullscreen disable, tray mode, and WebDAV sync</li>
+            </ul>
+
+          </div>
+
+          <div class="hero-visual" aria-hidden="true">
+            <div class="visual-orbit orbit-a"></div>
+            <div class="visual-orbit orbit-b"></div>
+            <div class="hero-stage">
+              <article class="hero-preview hero-preview-main">
+                <span class="preview-label">Main UI</span>
+                <div class="media-frame">
+                  <img
+                    src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/1.jpg"
+                    alt="FlowScroll main window"
+                  />
+                </div>
+              </article>
+
+              <article class="hero-preview hero-preview-side">
+                <span class="preview-label">Settings</span>
+                <div class="media-frame">
+                  <img
+                    src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/2.jpg"
+                    alt="FlowScroll settings screen"
+                  />
+                </div>
+              </article>
+
+              <div class="hero-specs">
+                <span>Click / Hold</span>
+                <span>Smooth + Inertia</span>
+                <span>Horizontal Scroll</span>
+                <span>Filters + Regex</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="showcase">
+          <div class="section-heading wide">
+            <span class="eyebrow">Showcase</span>
+            <h2>See the interface and scrolling behavior before you download</h2>
+            <p>The screenshots and demos show how FlowScroll behaves in long documents, code views, spreadsheets, and timelines.</p>
+          </div>
+
+          <div class="showcase-grid">
+            <article class="showcase-card featured demo-card demo-reading-card">
+              <div class="media-frame wide">
+                <img
+                  src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo1.gif"
+                  alt="FlowScroll scrolling demo"
+                  loading="lazy"
+                />
+              </div>
+              <div class="card-copy">
+                <h3>Reading, documents, and long pages</h3>
+                <p>Once scrolling mode is active, mouse offset controls direction and speed. The farther you move from the center, the faster it goes. This works especially well for long pages, PDFs, and continuous reading.</p>
+                <p class="caption-note">The blue markers in the demo exist only for recording clarity. The real app does not show them.</p>
+              </div>
+            </article>
+
+            <article class="showcase-card demo-card demo-horizontal-card">
+              <div class="media-frame">
+                <img
+                  src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo2.gif"
+                  alt="FlowScroll horizontal scrolling demo"
+                  loading="lazy"
+                />
+              </div>
+              <div class="card-copy compact">
+                <h3>Horizontal content becomes much easier to navigate</h3>
+                <p>Wide sheets, timelines, canvases, and code views no longer force you back to scrollbars or trackpads.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="workflow">
+          <div class="section-heading wide">
+            <span class="eyebrow">Workflow</span>
+            <h2>Three activation styles for different habits</h2>
+            <p>Use click mode for browser-like scrolling, hold mode for temporary control, or delayed activation when native middle-click actions still matter.</p>
+          </div>
+
+          <div class="workflow-preview-shell">
+            <article class="workflow-preview-card">
+              <span class="preview-label">Work Modes</span>
+              <div class="media-frame">
+                <img
+                  src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/3.jpg"
+                  alt="FlowScroll work mode window"
+                  loading="lazy"
+                />
+              </div>
+            </article>
+          </div>
+
+          <div class="workflow-grid">
+            <article class="mode-card">
+              <span class="mode-index">01</span>
+              <h3>Click to toggle on and off</h3>
+              <p>This is the closest match to browser middle-click autoscroll. Click once to enter, click again to exit, and keep scrolling as long as you need.</p>
+            </article>
+            <article class="mode-card">
+              <span class="mode-index">02</span>
+              <h3>Hold to activate, release to stop</h3>
+              <p>This feels closer to turning the mouse into a temporary trackpad. It is especially good for short bursts of precise movement and pairs naturally with inertia.</p>
+            </article>
+            <article class="mode-card">
+              <span class="mode-index">03</span>
+              <h3>Delayed activation</h3>
+              <p>If you still want native middle-click actions such as closing tabs, a 150 to 250 ms delay is often enough to keep FlowScroll responsive without triggering too aggressively.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="features">
+          <div class="section-heading">
+            <span class="eyebrow">Capabilities</span>
+            <h2>Core features built for real desktop scrolling</h2>
+            <p>Motion tuning, compatibility controls, filtering, and sync all live in one place, so the app is ready to fit into everyday work instead of needing setup gymnastics.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <h3>Two activation modes and delayed activation</h3>
+              <p>Click mode, hold mode, and delayed activation help balance everyday use with app compatibility.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Smooth motion, inertia, and horizontal scrolling</h3>
+              <p>Acceleration, base speed, dead zone, inertia, and horizontal movement can all be tuned for different content types.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Direction reversal</h3>
+              <p>Independent X and Y direction settings make it easier to match different scrolling habits.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Application filtering</h3>
+              <p>Global mode, blacklist mode, whitelist mode, and optional regex matching are all available.</p>
+            </article>
+            <article class="feature-card">
+              <h3>Presets, tray mode, and fullscreen disable</h3>
+              <p>Built-in presets, tray-based background use, and fullscreen exclusion keep the app practical in daily use.</p>
+            </article>
+            <article class="feature-card">
+              <h3>WebDAV sync</h3>
+              <p>Settings can be synced across devices, while passwords stay in secure system credential storage.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="downloads">
+          <div class="section-heading">
+            <span class="eyebrow">Download</span>
+            <h2>Fetch the latest release and download it directly</h2>
+            <p>The page tries GitHub Releases first, then automatically falls back to Gitee Releases when GitHub is unavailable.</p>
+          </div>
+
+          <div class="status-banner" id="download-status" aria-live="polite">
+            Loading the latest build from GitHub Releases...
+          </div>
+
+          <div class="download-grid" id="download-grid">
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+            <article class="download-card loading-card">
+              <div class="skeleton badge"></div>
+              <div class="skeleton title"></div>
+              <div class="skeleton button"></div>
+            </article>
+          </div>
+
+          <div class="download-note">
+            <p>
+              If automatic loading fails, use GitHub Releases or Gitee Releases directly.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="start">
+          <div class="section-heading">
+            <span class="eyebrow">First Run</span>
+            <h2>Download it, open it, and start in three steps</h2>
+            <p>It is a portable app, so there is no separate install flow to learn. Download the right build, handle any required permissions, and start scrolling.</p>
+          </div>
+
+          <div class="install-grid">
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">01</span>
+                <span class="install-kicker">Download & Open</span>
+              </div>
+              <h3>Grab the build for your platform</h3>
+              <p>Run the <code>.exe</code> on Windows, open the <code>.dmg</code> on macOS, or launch the <code>.AppImage</code> on Linux.</p>
+              <div class="install-tags">
+                <span>Windows .exe</span>
+                <span>macOS .dmg</span>
+                <span>Linux .AppImage</span>
+              </div>
+            </article>
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">02</span>
+                <span class="install-kicker">Permissions</span>
+              </div>
+              <h3>Only the platforms that need it ask for more</h3>
+              <p>Windows usually works immediately, macOS needs Accessibility permission, and Linux works best on X11/Xorg.</p>
+              <div class="install-tags">
+                <span>Windows usually no extra step</span>
+                <span>macOS Accessibility</span>
+                <span>Linux X11/Xorg</span>
+              </div>
+            </article>
+            <article class="install-card">
+              <div class="install-head">
+                <span class="mode-index">03</span>
+                <span class="install-kicker">Start Scrolling</span>
+              </div>
+              <h3>The default preset is already enough to begin</h3>
+              <p>Start immediately, then decide whether click mode, hold mode, or delayed activation fits your workflow better.</p>
+              <div class="install-tags">
+                <span>Default Preset</span>
+                <span>Click Mode</span>
+                <span>Hold Mode</span>
+                <span>Delayed Activation</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <div class="section-heading narrow">
+            <span class="eyebrow">FAQ</span>
+            <h2>The most common questions before and after first run</h2>
+          </div>
+          <div class="faq-list">
+            <details open>
+              <summary>Can it conflict with the browser's built-in middle-click autoscroll?</summary>
+              <p>Yes. If you want to preserve browser-native behavior, use app filtering or delayed activation.</p>
+            </details>
+            <details>
+              <summary>Why is Windows recommended more strongly?</summary>
+              <p>Because it is the most complete path today and the most direct download-and-run experience. macOS and Linux remain available, but they come with more prerequisites.</p>
+            </details>
+            <details>
+              <summary>What does macOS require?</summary>
+              <p>Accessibility permission is usually required so the app can listen to global mouse and keyboard input. That is a normal prerequisite for this class of tool.</p>
+            </details>
+            <details>
+              <summary>Why is Linux labeled as preview-grade?</summary>
+              <p>Because X11/Xorg is the realistic target, while Wayland usually blocks the traditional global input hooks this app depends on.</p>
+            </details>
+            <details>
+              <summary>Does it upload keyboard content or mouse trails?</summary>
+              <p>No. FlowScroll only handles current scrolling state and rule matching. It does not record typed content or keep a long-term mouse trail history.</p>
+            </details>
+            <details>
+              <summary>Is the WebDAV password written into the config file?</summary>
+              <p>No. Passwords are stored through system credential storage when available, rather than being written into plain config files.</p>
+            </details>
+            <details>
+              <summary>What if the automatic release lookup fails?</summary>
+              <p>Use GitHub Releases or Gitee Releases directly. The page itself tries GitHub first and then falls back to Gitee.</p>
+            </details>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer">
+        <strong class="footer-title">FlowScroll</strong>
+        <p class="footer-note">Bring browser-style middle-click autoscroll to your whole desktop.</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
