@@ -1000,15 +1000,10 @@ a:focus-visible {
   background: rgba(24, 49, 63, 0.08);
 }
 
-.download-hints,
-.meta-list {
-  display: grid;
-  gap: 10px;
-}
-
 .download-hints {
   display: flex;
   flex-wrap: wrap;
+  gap: 10px;
 }
 
 .download-hints span {
@@ -1021,32 +1016,6 @@ a:focus-visible {
   background: rgba(255, 255, 255, 0.55);
   color: var(--ink-soft);
   font-size: 0.88rem;
-}
-
-.meta-list {
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.meta-list > span {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  color: var(--ink-soft);
-  font-size: 0.95rem;
-}
-
-.meta-list b {
-  color: var(--ink);
-  text-align: right;
-  word-break: break-all;
-}
-
-.meta-list b.empty-value {
-  color: var(--ink-soft);
-  font-weight: 500;
 }
 
 .download-note {
@@ -1581,8 +1550,7 @@ a:focus-visible {
     font-size: 0.72rem;
   }
 
-  .download-header,
-  .meta-list > span {
+  .download-header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1601,18 +1569,6 @@ a:focus-visible {
     margin: 16px 0;
     padding: 14px 16px;
     font-size: 0.95rem;
-  }
-
-  .meta-list {
-    padding: 13px 14px;
-  }
-
-  .meta-list > span {
-    font-size: 0.9rem;
-  }
-
-  .meta-list b {
-    text-align: left;
   }
 
   .download-note {

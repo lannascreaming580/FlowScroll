@@ -6,11 +6,8 @@
       platformPackage: "平台包",
       viewPlatformNote: "查看平台说明",
       genericNote: "请确认平台兼容性后再下载。",
-      fileNameLabel: "文件名",
-      sizeLabel: "大小",
-      autoResolved: "自动解析",
-      pending: "待补充",
       downloadPrefix: "下载",
+      downloadCta: (platform) => `下载 ${platform} 版本`,
       sourceGithub: "GitHub Releases",
       sourceGitee: "Gitee Releases",
       loadingGithub: "正在读取 GitHub Releases…",
@@ -64,11 +61,8 @@
       platformPackage: "Package",
       viewPlatformNote: "Check platform notes",
       genericNote: "Check platform compatibility before downloading.",
-      fileNameLabel: "Filename",
-      sizeLabel: "Size",
-      autoResolved: "Auto-resolved",
-      pending: "TBD",
       downloadPrefix: "Download",
+      downloadCta: (platform) => `Download for ${platform}`,
       sourceGithub: "GitHub Releases",
       sourceGitee: "Gitee Releases",
       loadingGithub: "Loading the latest GitHub release…",
@@ -262,20 +256,6 @@
     return /^\d/.test(token) ? `v${token}` : token;
   }
 
-  function formatSize(value) {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      const units = ["B", "KB", "MB", "GB"];
-      let index = 0;
-      let size = value;
-      while (size >= 1024 && index < units.length - 1) {
-        size /= 1024;
-        index += 1;
-      }
-      return `${size >= 10 || index === 0 ? Math.round(size) : size.toFixed(1)} ${units[index]}`;
-    }
-    return value ? String(value) : text.pending;
-  }
-
   function inferPlatformAsset(name) {
     const filename = String(name || "").trim();
     const lower = filename.toLowerCase();
@@ -322,7 +302,6 @@
       label: inferred.label,
       filename: filename,
       url: url,
-      size: formatSize(item.size),
       version: releaseVersion
     };
   }
@@ -404,9 +383,8 @@
       .map((item) => {
         const platformKey = normalizePlatform(item.platform);
         const detail = getPlatformDetail(platformKey);
-        const title = escapeHtml(item.label || detail.label || item.platform || text.downloadItem);
-        const filename = escapeHtml(item.filename || "");
-        const size = escapeHtml(item.size || text.pending);
+        const rawTitle = item.label || detail.label || item.platform || text.downloadItem;
+        const title = escapeHtml(rawTitle);
         const note = escapeHtml(getDisplayNote(item, detail));
         const url = escapeHtml(normalizeUrl(item.url || item.filename || ""));
         const versionText = escapeHtml(item.version || version);
@@ -414,6 +392,7 @@
         const requirement = escapeHtml(detail.requirement || text.viewPlatformNote);
         const badgeClass = detail.className || "neutral";
         const fileType = inferFileType(item.filename || item.url || "");
+        const downloadLabel = escapeHtml(text.downloadCta ? text.downloadCta(rawTitle) : `${text.downloadPrefix} ${rawTitle}`);
 
         return `
           <article class="download-card ${detail.recommended ? "recommended" : ""}">
@@ -429,11 +408,7 @@
               <span>${requirement}</span>
               <span>${fileType}</span>
             </div>
-            <div class="meta-list">
-              <span><span>${text.fileNameLabel}</span><b>${filename || text.autoResolved}</b></span>
-              <span><span>${text.sizeLabel}</span><b>${size}</b></span>
-            </div>
-            <a class="download-button" href="${url}" target="_blank" rel="noreferrer">${text.downloadPrefix} ${title}</a>
+            <a class="download-button" href="${url}" target="_blank" rel="noreferrer">${downloadLabel}</a>
           </article>
         `;
       })
