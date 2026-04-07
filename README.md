@@ -15,9 +15,9 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://github.com/CyrilPeng/FlowScroll/releases) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) 
 
-</div>
+[项目官网](https://flowscroll.pages.dev/) | [发行版](https://github.com/CyrilPeng/FlowScroll/releases)
 
-> 当前仓库默认开发分支为 `main`；稳定版本、安装包和正式更新记录请以 GitHub Release 为准。
+</div>
 
 ---
 

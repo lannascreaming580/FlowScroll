@@ -4,7 +4,18 @@
 
 ## Unreleased
 
-- 暂无
+### Changed
+- `flowscroll-homepage` 官网重构为更正式的产品官网：重写首屏、演示、能力、下载与页脚信息架构，清理半成品文案、路线图式说明和重复的下载/安装引导
+- 官网头部改为桌面优先布局：移除移动端抽屉导航，小屏仅保留品牌、语言和下载入口；桌面端头部新增 GitHub / Gitee 入口
+- README 与 README.en 顶部新增官网入口导航，指向正式站点 `https://flowscroll.pages.dev/`
+
+### Improved
+- 官网下载逻辑改为优先读取 GitHub Releases，失败时自动回退到 Gitee Releases；下载区、主按钮和版本文案会随实际来源同步更新
+- 官网演示媒体排版重组：竖版界面图与横版滚动演示分开展示，工作模式截图独立归入启动方式区域；两张 GIF 统一展示高度并按内容裁切
+- 官网截图视觉改为中性产品框与全幅演示样式，移除伪 macOS 窗口装饰，整体风格更贴近正式桌面软件官网
+
+### Removed
+- 移除官网底部 GitHub / Releases / Gitee 外链、开始使用重复说明，以及旧的首页 manifest / JSON 版本检测链路
 
 ## v1.7.6
 

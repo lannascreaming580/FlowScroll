@@ -13,9 +13,9 @@ Bring browser-style auto-scroll to your whole desktop.
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 [![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://github.com/CyrilPeng/FlowScroll/releases) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) 
 
-</div>
+[Website](https://flowscroll.pages.dev/) | [Releases](https://github.com/CyrilPeng/FlowScroll/releases)
 
-> The default branch in this repository is the development branch `main`; for stable builds, installers, and official release notes, use GitHub Releases.
+</div>
 
 ---
 
