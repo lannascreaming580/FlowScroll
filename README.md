@@ -355,6 +355,22 @@ FlowScroll 更偏向一种“先解决真实问题，再持续打磨实现”的
 FlowScroll 首先是一个为真实使用场景服务的小工具。
 它也许并不完美，但会继续演进。
 
+---
+
+## 🤝 协助者
+
+感谢所有提交 PR、反馈问题、参与讨论并帮助打磨 FlowScroll 的朋友。
+
+下面的贡献者展示会随仓库贡献情况自动更新：
+
+<div align="center">
+  <a href="https://github.com/CyrilPeng/FlowScroll/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=CyrilPeng/FlowScroll" alt="FlowScroll contributors" />
+  </a>
+</div>
+
+如果你也愿意一起完善它，欢迎继续提交 issue 或 PR。
+
 <div align="center">
   <sub>Made with ❤️ by 某不科学的高数</sub>
 </div>

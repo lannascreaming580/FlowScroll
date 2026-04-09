@@ -247,3 +247,19 @@ If you notice weaknesses in the implementation or see room for improvement, issu
 
 FlowScroll is, first of all, a small tool built for real usage scenarios.
 It may not be perfect, but it will keep evolving.
+
+---
+
+## Contributors
+
+Thanks to everyone who has contributed pull requests, bug reports, discussion, and concrete improvements to FlowScroll.
+
+This contributor graph updates automatically with the repository:
+
+<div align="center">
+  <a href="https://github.com/CyrilPeng/FlowScroll/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=CyrilPeng/FlowScroll" alt="FlowScroll contributors" />
+  </a>
+</div>
+
+If you want to help improve it too, issues and pull requests are welcome.
